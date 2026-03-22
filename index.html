@@ -2763,6 +2763,328 @@ if (preEvent) {
   window.addEventListener('load', () => { const sel = document.getElementById('evento'); if (sel) sel.value = preEvent; });
 }
 
+
+// ── Populate Event Dropdowns ──────────────────────────────
+function populateEventDropdowns() {
+  ['evento','filtroEvento','analytics-evento-filter','dashboard-evento-filter'].forEach(id => {
+    const sel = document.getElementById(id); if (!sel) return;
+    const cur = sel.value;
+    if (id === 'evento') sel.innerHTML = '<option value="">Selecione o evento</option>';
+    else if (id === 'analytics-evento-filter' || id === 'dashboard-evento-filter') sel.innerHTML = '<option value="todos">Todos os eventos</option>';
+    else sel.innerHTML = '<option value="Todos">Todos os Eventos</option>';
+    allEvents.forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.name; opt.textContent = ev.name;
+      if (ev.color) opt.style.borderLeft = `3px solid ${ev.color}`;
+      sel.appendChild(opt);
+    });
+    if (cur) sel.value = cur;
+  });
+}
+
+function autoSelectEvent() {
+  const sel = document.getElementById('evento'); if (!allEvents.length || !sel) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const parse = s => s ? new Date(s + 'T00:00:00') : null;
+  const active = allEvents.find(ev => { const s=parse(ev.startDate),e=parse(ev.endDate); return s&&e&&s<=today&&today<=e; });
+  if (active) { sel.value = active.name; return; }
+  const upcoming = allEvents.filter(ev => parse(ev.startDate) >= today).sort((a,b) => parse(a.startDate)-parse(b.startDate));
+  if (upcoming.length) { sel.value = upcoming[0].name; return; }
+  const past = allEvents.filter(ev => parse(ev.endDate) < today).sort((a,b) => parse(b.endDate)-parse(a.endDate));
+  if (past.length) sel.value = past[0].name;
+}
+
+function populateSdrDropdown(sel) {
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecionar SDR</option>';
+  allUsers.filter(u => u.role === 'sdr' && u.status === 'approved').forEach(u => {
+    sel.innerHTML += `<option value="${u.nome} ${u.sobrenome}">${u.nome} ${u.sobrenome}</option>`;
+  });
+  if (cur) sel.value = cur;
+}
+
+function populateResponsavelFilter() {
+  const sel = document.getElementById('filtroResponsavel'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="Todos">Todos</option><option value="Não atribuído">Não atribuído</option>';
+  allUsers.filter(u => u.status === 'approved')
+    .sort((a,b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`))
+    .forEach(u => { sel.innerHTML += `<option value="${u.nome} ${u.sobrenome}">${u.nome} ${u.sobrenome}</option>`; });
+  if (cur) sel.value = cur;
+}
+
+function populateFilters() { populateResponsavelFilter(); }
+
+// ── Filters ───────────────────────────────────────────────
+function countActiveFilters() {
+  let c = 0;
+  const checks = [
+    ['filtroEvento','Todos'], ['filtroResponsavel','Todos'],
+    ['filtroPipeline','Todos'], ['filtroOrigem','Todos'], ['filtroBrinde','Todos']
+  ];
+  checks.forEach(([id, def]) => { const el = document.getElementById(id); if (el && el.value !== def) c++; });
+  if (document.getElementById('filtroDataInicio')?.value) c++;
+  return c;
+}
+
+function handleFilterChange() {
+  let filtered = [...allClients];
+  const texto = (document.getElementById('filtroTexto')?.value || '').toLowerCase();
+  const evFilter = document.getElementById('filtroEvento')?.value || 'Todos';
+  const respFilter = document.getElementById('filtroResponsavel')?.value || 'Todos';
+  const pipeFilter = document.getElementById('filtroPipeline')?.value || 'Todos';
+  const origFilter = document.getElementById('filtroOrigem')?.value || 'Todos';
+  const dStart = document.getElementById('filtroDataInicio')?.value;
+  const dEnd = document.getElementById('filtroDataFim')?.value;
+  const brindeFilter = document.getElementById('filtroBrinde')?.value || 'Todos';
+
+  if (texto) filtered = filtered.filter(c =>
+    [c.name, c.email, c.company, c.evento, c.responsavel, c.anotacoes, c.brindeNome]
+      .some(f => (f || '').toLowerCase().includes(texto)));
+  if (evFilter !== 'Todos') filtered = filtered.filter(c => c.evento === evFilter);
+  if (respFilter === 'Não atribuído') filtered = filtered.filter(c => !c.responsavel);
+  else if (respFilter !== 'Todos') filtered = filtered.filter(c => c.responsavel === respFilter);
+  if (pipeFilter !== 'Todos') filtered = filtered.filter(c => (c.pipelineStage || 'novo') === pipeFilter);
+  if (origFilter !== 'Todos') filtered = filtered.filter(c => c.origemContato === origFilter);
+  if (dStart) filtered = filtered.filter(c => { const d = c.createdAt?.toDate?.(); return d && d >= new Date(dStart); });
+  if (dEnd) filtered = filtered.filter(c => { const d = c.createdAt?.toDate?.(); return d && d <= new Date(dEnd + 'T23:59:59'); });
+  if (brindeFilter === 'sim') filtered = filtered.filter(c => c.entregouBrinde);
+  else if (brindeFilter === 'nao') filtered = filtered.filter(c => !c.entregouBrinde);
+
+  filtered.sort((a, b) => {
+    if (clientSort.key === 'createdAt') {
+      const at = a.createdAt?.toMillis?.() ?? 0, bt = b.createdAt?.toMillis?.() ?? 0;
+      return clientSort.dir === 'desc' ? bt - at : at - bt;
+    }
+    const av = String(a[clientSort.key] || '').toLowerCase(), bv = String(b[clientSort.key] || '').toLowerCase();
+    return clientSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+
+  renderTable(filtered);
+  renderRegistrosStats(filtered);
+
+  const activeCount = countActiveFilters();
+  const badge = document.getElementById('filter-count-badge');
+  if (badge) { badge.textContent = activeCount; badge.classList.toggle('hidden', activeCount === 0); }
+}
+
+// Filter input listeners
+['filtroTexto','filtroEvento','filtroResponsavel','filtroPipeline','filtroOrigem','filtroDataInicio','filtroDataFim','filtroBrinde'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', handleFilterChange);
+  document.getElementById(id)?.addEventListener('change', handleFilterChange);
+});
+
+document.getElementById('clearFiltersButton')?.addEventListener('click', () => {
+  ['filtroTexto','filtroEvento','filtroResponsavel','filtroPipeline','filtroOrigem','filtroDataInicio','filtroDataFim','filtroBrinde']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = el.tagName === 'SELECT' ? el.options[0].value : ''; });
+  handleFilterChange();
+});
+
+// Analytics filter
+document.getElementById('analytics-evento-filter')?.addEventListener('change', renderAnalytics);
+
+// ── Saved Filters ─────────────────────────────────────────
+function renderSavedFilters() {
+  const bar = document.getElementById('saved-filters-bar');
+  const chips = document.getElementById('saved-filters-chips');
+  if (!bar || !chips) return;
+  if (!savedFilters.length) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  chips.innerHTML = savedFilters.map(f =>
+    `<span class="filter-chip" onclick="applyFilter(${f.id})">${f.name}
+      <button onclick="event.stopPropagation();deleteFilter(${f.id})" style="color:color-mix(in srgb,var(--c-brand) 60%,transparent);margin-left:4px">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </span>`).join('');
+}
+
+window.applyFilter = id => {
+  const f = savedFilters.find(x => x.id === id); if (!f) return;
+  ['filtroEvento','filtroResponsavel','filtroPipeline','filtroOrigem'].forEach(k => {
+    const el = document.getElementById(k); if (el && f[k]) el.value = f[k];
+  });
+  handleFilterChange();
+  closeFilterSidebar();
+  showToast(`Filtro "${f.name}" aplicado.`);
+};
+window.deleteFilter = id => {
+  savedFilters = savedFilters.filter(x => x.id !== id);
+  localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+  renderSavedFilters();
+};
+
+document.getElementById('save-filter-btn')?.addEventListener('click', () => {
+  const name = document.getElementById('saved-filter-name')?.value.trim();
+  if (!name) { showToast('Digite um nome para o filtro.', 'warn'); return; }
+  const filter = {
+    name, id: Date.now(),
+    filtroEvento: document.getElementById('filtroEvento')?.value,
+    filtroResponsavel: document.getElementById('filtroResponsavel')?.value,
+    filtroPipeline: document.getElementById('filtroPipeline')?.value,
+    filtroOrigem: document.getElementById('filtroOrigem')?.value,
+  };
+  savedFilters.push(filter);
+  localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+  const inp = document.getElementById('saved-filter-name'); if (inp) inp.value = '';
+  renderSavedFilters();
+  showToast('Filtro salvo!');
+});
+
+// ── Quick Add ─────────────────────────────────────────────
+document.getElementById('quick-add-toggle')?.addEventListener('click', () => {
+  const panel = document.getElementById('quick-add-panel');
+  const form = document.getElementById('clientForm');
+  panel.classList.toggle('hidden');
+  form.classList.toggle('hidden', !panel.classList.contains('hidden'));
+});
+
+document.getElementById('qa-save-btn')?.addEventListener('click', async () => {
+  const name = document.getElementById('qa-name')?.value.trim();
+  if (!name) { showToast('Nome é obrigatório.', 'error'); return; }
+  const btn = document.getElementById('qa-save-btn'); btn.disabled = true;
+  const creatorName = `${currentUserData.nome} ${currentUserData.sobrenome}`;
+  const eventoVal = document.getElementById('evento')?.value || '';
+  const lead = {
+    name, company: document.getElementById('qa-company')?.value.trim() || '',
+    phone: document.getElementById('qa-phone')?.value.trim() || '',
+    evento: eventoVal, email: '', origemContato: '',
+    pipelineStage: 'novo', responsavel: creatorName, creatorName,
+    createdBy: currentUserId, createdAt: new Date(),
+    entregouBrinde: false, brindeId: null, brindeNome: null,
+    reuniaoRealizada: false, reuniaoAgendada: false, agendarReuniao: false,
+    realizadaPor: null, responsavelConta: false, contatoDecisor: false,
+    conversaDemanda: false, pedirRO: false, demandas: [], nutricaoMKT: false,
+  };
+  try {
+    if (navigator.onLine) {
+      const ref = await addDoc(clientesRef, lead);
+      await logHistory(ref.id, 'Lead criado (rápido)', `Por ${creatorName}`);
+      showToast('Lead salvo!');
+    } else {
+      offlineQueue.push(lead);
+      localStorage.setItem('offlineLeads', JSON.stringify(offlineQueue));
+      updateOfflineBadge();
+      showToast('Sem conexão. Salvo localmente.', 'warn');
+    }
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    const qaName = document.getElementById('qa-name'); if (qaName) qaName.value = '';
+    const qaComp = document.getElementById('qa-company'); if (qaComp) qaComp.value = '';
+    const qaPhone = document.getElementById('qa-phone'); if (qaPhone) qaPhone.value = '';
+    document.getElementById('quick-add-panel')?.classList.add('hidden');
+    document.getElementById('clientForm')?.classList.remove('hidden');
+    switchTab('registros');
+  } catch (err) { showToast('Erro ao salvar.', 'error'); console.error(err); }
+  finally { btn.disabled = false; }
+});
+
+// ── Client Form Submit ────────────────────────────────────
+document.getElementById('clientForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const nameVal = document.getElementById('name')?.value.trim();
+  const leadEmail = document.getElementById('lead_email')?.value.trim();
+  if (!nameVal) { showToast('Nome é obrigatório.', 'error'); return; }
+  if (leadEmail && !isValidEmail(leadEmail)) { showToast('E-mail inválido.', 'error'); return; }
+
+  const btn = document.getElementById('saveButton');
+  btn.disabled = true;
+  btn.querySelector('.button-text')?.classList.add('hidden');
+  btn.querySelector('.spinner')?.classList.remove('hidden');
+
+  const creatorName = `${currentUserData.nome} ${currentUserData.sobrenome}`;
+  const proximoPasso = document.getElementById('proximoPassoVal')?.value || '';
+  const brindeData = getBrindeData();
+
+  const lead = {
+    evento: document.getElementById('evento')?.value || '',
+    name: nameVal,
+    company: document.getElementById('company')?.value.trim() || '',
+    email: leadEmail || '',
+    phone: document.getElementById('phone')?.value.trim() || '',
+    origemContato: document.getElementById('origemContato')?.value || '',
+    responsavelConta: document.getElementById('responsavelContaVal')?.value === 'sim',
+    contatoDecisor: document.getElementById('contatoDecisorVal')?.value === 'sim',
+    conversaDemanda: document.getElementById('conversaDemandaVal')?.value === 'sim',
+    pedirRO: document.getElementById('pedirROVal')?.value === 'sim',
+    nutricaoMKT: proximoPasso === 'nutricaoMKT',
+    demandas: JSON.parse(document.getElementById('clientForm')?.dataset.demandas || '[]'),
+    reuniaoAgendada: proximoPasso === 'euAgendo',
+    agendarReuniao: proximoPasso === 'sdrAgenda',
+    reuniaoData: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoDataInput')?.value : null,
+    reuniaoHora: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoHoraInput')?.value : null,
+    reuniaoAgendadaPor: proximoPasso === 'sdrAgenda' ? document.getElementById('sdrSelector')?.value : null,
+    pipelineStage: document.getElementById('pipelineStageVal')?.value || 'novo',
+    anotacoes: document.getElementById('anotacoes')?.value.trim() || '',
+    createdAt: new Date(), createdBy: currentUserId, creatorName,
+    responsavel: creatorName,
+    reuniaoRealizada: false, realizadaPor: null,
+    ...brindeData,
+  };
+
+  try {
+    if (navigator.onLine) {
+      const ref = await addDoc(clientesRef, lead);
+      await logHistory(ref.id, 'Lead criado', `Por ${creatorName}`);
+      if (lead.brindeId) await decrementBrindeStock(lead.brindeId);
+      if (proximoPasso === 'sdrAgenda' && lead.reuniaoAgendadaPor) {
+        const sdrUser = allUsers.find(u => `${u.nome} ${u.sobrenome}` === lead.reuniaoAgendadaPor);
+        if (sdrUser && sdrUser.id !== currentUserId) {
+          await sendNotification(sdrUser.id, '📋 Novo lead para agendar', `${creatorName} quer que você agende reunião com "${nameVal}".`);
+        }
+      }
+      showToast('Lead salvo com sucesso!');
+      if (navigator.vibrate) navigator.vibrate(50);
+    } else {
+      offlineQueue.push(lead);
+      localStorage.setItem('offlineLeads', JSON.stringify(offlineQueue));
+      updateOfflineBadge();
+      showToast('Sem conexão. Salvo localmente.', 'warn');
+    }
+    resetForm();
+    goToWizardStep(1);
+    switchTab('registros');
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao salvar lead.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('.button-text')?.classList.remove('hidden');
+    btn.querySelector('.spinner')?.classList.add('hidden');
+  }
+});
+
+function resetForm() {
+  document.getElementById('clientForm')?.reset();
+  document.querySelectorAll('#clientForm .choice-btn').forEach(b => b.classList.remove('selected'));
+  ['responsavelContaVal','contatoDecisorVal','conversaDemandaVal','pedirROVal','proximoPassoVal','origemContato','entregouBrindeVal']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const pvEl = document.getElementById('pipelineStageVal'); if (pvEl) pvEl.value = 'novo';
+  document.querySelectorAll('#pipeline-new .pipeline-step').forEach((s,i) => {
+    s.classList.remove('active','done'); if (i === 0) s.classList.add('active');
+  });
+  ['demandasContainer','dataHoraAgendadaContainer','sdrSelectorContainer','brindeSelectionContainer','brindeOutroContainer']
+    .forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  const dwEl = document.getElementById('duplicate-email-warning'); if (dwEl) dwEl.style.display = 'none';
+  const dpEl = document.getElementById('duplicate-phone-warning'); if (dpEl) dpEl.style.display = 'none';
+  const eiEl = document.getElementById('email-validation-icon'); if (eiEl) eiEl.classList.add('hidden');
+  if (document.getElementById('clientForm')) document.getElementById('clientForm').dataset.demandas = '[]';
+  resetDemandaSelector();
+  resetBrindeSection();
+}
+
+// ── Registros Stats ───────────────────────────────────────
+function renderRegistrosStats(clients) {
+  const total = clients.length, stageCount = {};
+  PIPELINE_STAGES.forEach(s => { stageCount[s] = clients.filter(c => (c.pipelineStage || 'novo') === s).length; });
+  const withBrinde = clients.filter(c => c.entregouBrinde).length;
+  const el = document.getElementById('registros-stats'); if (!el) return;
+  el.innerHTML = `
+    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-brand-dim)"><i class="fas fa-users text-sm" style="color:var(--c-brand)"></i></div><div><p class="text-2xl font-extrabold">${total}</p><p class="text-xs" style="color:var(--c-text-3)">Total</p></div></div>
+    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-amber-dim)"><i class="fas fa-calendar text-sm" style="color:var(--c-amber)"></i></div><div><p class="text-2xl font-extrabold">${stageCount.reuniao_agendada || 0}</p><p class="text-xs" style="color:var(--c-text-3)">Agendadas</p></div></div>
+    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-green-dim)"><i class="fas fa-handshake text-sm" style="color:var(--c-green)"></i></div><div><p class="text-2xl font-extrabold">${stageCount.reuniao_realizada || 0}</p><p class="text-xs" style="color:var(--c-text-3)">Realizadas</p></div></div>
+    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-purple-dim)"><i class="fas fa-gift text-sm" style="color:var(--c-purple)"></i></div><div><p class="text-2xl font-extrabold">${withBrinde}</p><p class="text-xs" style="color:var(--c-text-3)">Com brinde</p></div></div>`;
+}
+
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
 </script>
