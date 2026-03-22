@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0070c0">
+<title>Cadastro de Lead</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#0070c0;--brand-light:#3b82f6;--brand-dim:#eff6ff;
+  --green:#059669;--green-dim:#ecfdf5;
+  --red:#dc2626;--red-dim:#fef2f2;
+  --amber:#d97706;--amber-dim:#fffbeb;
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;
+  --text:#0f172a;--text-2:#64748b;--text-3:#94a3b8;
+  --radius:10px;--radius-lg:14px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Header ── */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.header-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0070c0,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-logo svg{width:18px;height:18px;fill:white}
+.header-title{font-weight:800;font-size:15px}
+.header-sub{font-size:12px;color:var(--text-2);margin-top:1px}
+
+/* ── Container ── */
+.container{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+
+/* ── Event badge ── */
+.event-badge{display:flex;align-items:center;gap:8px;background:var(--brand-dim);border:1px solid rgba(0,112,192,.2);border-radius:10px;padding:10px 14px;margin-bottom:20px}
+.event-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex-shrink:0}
+.event-name{font-size:13px;font-weight:700;color:var(--brand)}
+.event-label{font-size:11px;color:var(--text-2)}
+
+/* ── Card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin-bottom:14px}
+
+/* ── Fields ── */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:5px}
+.label .req{color:var(--red)}
+.input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
+.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,112,192,.12)}
+.input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.input::placeholder{color:var(--text-3)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.field-row{grid-template-columns:1fr}}
+
+/* ── Choice buttons ── */
+.choices{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.choice{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--surface);color:var(--text-2);font-family:inherit}
+.choice:hover{border-color:var(--brand);color:var(--brand)}
+.choice.selected{border-color:var(--brand);background:var(--brand-dim);color:var(--brand)}
+
+/* ── Submit ── */
+.submit-btn{width:100%;padding:14px;border-radius:var(--radius-lg);border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.submit-btn:hover{background:var(--brand-light);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,112,192,.35)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Success ── */
+.success-screen{display:none;text-align:center;padding:32px 20px}
+.success-icon{width:72px;height:72px;border-radius:50%;background:var(--green-dim);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.success-icon svg{width:36px;height:36px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.success-title{font-size:22px;font-weight:800;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px;margin:0 auto 24px}
+.new-btn{padding:12px 28px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
+
+/* ── Error ── */
+.field-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+.dup-warning{background:var(--amber-dim);border:1px solid rgba(217,119,6,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--amber);margin-top:6px;display:none}
+
+/* ── Privacy note ── */
+.privacy{font-size:11px;color:var(--text-3);text-align:center;margin-top:16px;line-height:1.6}
+
+/* ── Loading overlay ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(248,250,252,.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:50}
+.loading-overlay .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--brand)}
+.loading-text{font-size:13px;color:var(--text-2)}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay (shown while Firebase initializes) -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Carregando...</div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </div>
+  <div>
+    <div class="header-title">Cadastro de Lead</div>
+    <div class="header-sub" id="headerSub">Deixe seus dados de contato</div>
+  </div>
+</header>
+
+<!-- Main form -->
+<div class="container" id="formContainer">
+
+  <!-- Event badge -->
+  <div class="event-badge" id="eventBadge" style="display:none">
+    <div class="event-dot"></div>
+    <div>
+      <div class="event-label">Evento</div>
+      <div class="event-name" id="eventBadgeName"></div>
+    </div>
+  </div>
+
+  <form id="leadForm" novalidate>
+
+    <!-- Dados pessoais -->
+    <div class="card">
+      <div class="card-title">Seus dados</div>
+
+      <div class="field">
+        <label class="label">Nome completo <span class="req">*</span></label>
+        <input type="text" id="pub-name" class="input" placeholder="Ex: Maria Silva" autocomplete="name" required>
+        <div class="field-error" id="err-name">Nome é obrigatório</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="label">E-mail <span class="req">*</span></label>
+          <input type="email" id="pub-email" class="input" placeholder="email@empresa.com" autocomplete="email" required>
+          <div class="field-error" id="err-email">E-mail inválido</div>
+          <div class="dup-warning" id="dup-email-warn">Este e-mail já foi cadastrado neste evento.</div>
+        </div>
+        <div class="field">
+          <label class="label">WhatsApp</label>
+          <input type="tel" id="pub-phone" class="input" placeholder="(00) 00000-0000" autocomplete="tel">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Empresa</label>
+          <input type="text" id="pub-company" class="input" placeholder="Nome da empresa" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label class="label">Cargo</label>
+          <input type="text" id="pub-role" class="input" placeholder="Ex: Gerente de TI">
+        </div>
+      </div>
+    </div>
+
+    <!-- Como nos conheceu -->
+    <div class="card">
+      <div class="card-title">Como nos conheceu?</div>
+      <div class="choices" id="origem-choices">
+        <button type="button" class="choice" data-value="estande">Estande</button>
+        <button type="button" class="choice" data-value="palestra">Palestra</button>
+        <button type="button" class="choice" data-value="networking">Networking</button>
+        <button type="button" class="choice" data-value="indicacao">Indicação</button>
+        <button type="button" class="choice" data-value="outro">Outro</button>
+      </div>
+      <input type="hidden" id="pub-origem">
+    </div>
+
+    <!-- Interesses -->
+    <div class="card">
+      <div class="card-title">Quais temas te interessam?</div>
+      <div class="choices" id="interesse-choices">
+        <button type="button" class="choice" data-value="Conformidade">Conformidade</button>
+        <button type="button" class="choice" data-value="Proteção">Proteção</button>
+        <button type="button" class="choice" data-value="Disponibilidade">Disponibilidade</button>
+        <button type="button" class="choice" data-value="Todos">Todos os pilares</button>
+      </div>
+      <input type="hidden" id="pub-interesse">
+    </div>
+
+    <!-- Observações opcional -->
+    <div class="card">
+      <div class="card-title">Algo que queira nos contar? <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(opcional)</span></div>
+      <textarea id="pub-obs" class="input" rows="3" placeholder="Desafios, projetos em andamento, dúvidas..." style="resize:vertical"></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="submitText">Enviar cadastro</span>
+      <div class="spinner" id="submitSpinner" style="display:none"></div>
+    </button>
+  </form>
+
+  <p class="privacy">🔒 Seus dados são usados apenas para contato comercial e não serão compartilhados com terceiros.</p>
+</div>
+
+<!-- Success screen -->
+<div class="container" id="successContainer">
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 class="success-title">Cadastro enviado! 🎉</h2>
+    <p class="success-sub">Recebemos seus dados e entraremos em contato em breve. Obrigado pela visita!</p>
+    <button class="new-btn" onclick="resetForm()">Cadastrar outra pessoa</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGivDVIm89SY7-1-c_29Ric8V-vDEO8UY",
+  authDomain: "leads-collectorv2.firebaseapp.com",
+  projectId: "leads-collectorv2",
+  storageBucket: "leads-collectorv2.firebasestorage.app",
+  messagingSenderId: "597626217172",
+  appId: "1:597626217172:web:4a37f14d74b4fb5c5a1141"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const clientesRef = collection(db, 'clientes');
+
+// ── Get event from URL param ──
+const params = new URLSearchParams(window.location.search);
+const eventName = params.get('event') || '';
+
+// ── Hide loading ──
+document.getElementById('loadingOverlay').style.display = 'none';
+
+// ── Show event badge ──
+if (eventName) {
+  document.getElementById('eventBadge').style.display = 'flex';
+  document.getElementById('eventBadgeName').textContent = eventName;
+  document.getElementById('headerSub').textContent = eventName;
+  document.title = `Cadastro — ${eventName}`;
+}
+
+// ── Phone mask ──
+document.getElementById('pub-phone').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g,'').substring(0,11);
+  v = v.replace(/^(\d{2})(\d)/,'($1) $2');
+  v = v.replace(/(\d{5})(\d)/,'$1-$2');
+  e.target.value = v;
+});
+
+// ── Choice buttons ──
+document.querySelectorAll('#origem-choices .choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#origem-choices .choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('pub-origem').value = btn.dataset.value;
+  });
+});
+document.querySelectorAll('#interesse-choices .choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#interesse-choices .choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('pub-interesse').value = btn.dataset.value;
+  });
+});
+
+// ── Duplicate check on email blur ──
+let dupCheckTO;
+document.getElementById('pub-email').addEventListener('blur', async e => {
+  const email = e.target.value.trim().toLowerCase();
+  const warn = document.getElementById('dup-email-warn');
+  warn.style.display = 'none';
+  if (!email || !eventName) return;
+  clearTimeout(dupCheckTO);
+  dupCheckTO = setTimeout(async () => {
+    try {
+      const q = query(clientesRef, where('email','==',email), where('evento','==',eventName));
+      const snap = await getDocs(q);
+      if (!snap.empty) warn.style.display = 'block';
+    } catch(err) { /* silent */ }
+  }, 400);
+});
+
+// ── Form validation ──
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function showErr(id, show){ document.getElementById(id).style.display = show ? 'block' : 'none'; }
+function markInput(id, error){ document.getElementById(id).classList.toggle('error', error); }
+
+// ── Submit ──
+document.getElementById('leadForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const name = document.getElementById('pub-name').value.trim();
+  const email = document.getElementById('pub-email').value.trim();
+  const phone = document.getElementById('pub-phone').value.trim();
+  const company = document.getElementById('pub-company').value.trim();
+  const role = document.getElementById('pub-role').value.trim();
+  const origem = document.getElementById('pub-origem').value;
+  const interesse = document.getElementById('pub-interesse').value;
+  const obs = document.getElementById('pub-obs').value.trim();
+
+  // Validate
+  let valid = true;
+  if (!name) { showErr('err-name', true); markInput('pub-name', true); valid = false; }
+  else { showErr('err-name', false); markInput('pub-name', false); }
+  if (!email || !isValidEmail(email)) { showErr('err-email', true); markInput('pub-email', true); valid = false; }
+  else { showErr('err-email', false); markInput('pub-email', false); }
+  if (!valid) return;
+
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('submitText');
+  const spinner = document.getElementById('submitSpinner');
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
+
+  try {
+    await addDoc(clientesRef, {
+      name, email, phone, company,
+      cargo: role,
+      origemContato: origem || 'outro',
+      interesse: interesse || '',
+      anotacoes: obs,
+      evento: eventName,
+      pipelineStage: 'novo',
+      createdAt: new Date(),
+      createdBy: 'public_form',
+      creatorName: 'Formulário Público',
+      responsavel: '',
+      reuniaoRealizada: false,
+      reuniaoAgendada: false,
+      agendarReuniao: false,
+      realizadaPor: null,
+      responsavelConta: false,
+      contatoDecisor: false,
+      conversaDemanda: false,
+      pedirRO: false,
+      nutricaoMKT: false,
+      entregouBrinde: false,
+      brindeId: null,
+      brindeNome: null,
+      demandas: [],
+      origem: 'qr_code',
+    });
+
+    // Show success
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
+
+  } catch(err) {
+    console.error(err);
+    alert('Erro ao enviar. Verifique sua conexão e tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = 'inline';
+    spinner.style.display = 'none';
+  }
+});
+
+// ── Reset for another person ──
+window.resetForm = function() {
+  document.getElementById('leadForm').reset();
+  document.querySelectorAll('.choice').forEach(b => b.classList.remove('selected'));
+  document.getElementById('pub-origem').value = '';
+  document.getElementById('pub-interesse').value = '';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('dup-email-warn').style.display = 'none';
+  window.scrollTo(0, 0);
+};
+</script>
+</body>
+</html>

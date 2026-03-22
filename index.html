@@ -330,6 +330,11 @@ tr:hover .quick-note{display:block}
   .mobile-nav{display:none}
 }
 
+/* ── Hub tab buttons ── */
+.hub-tab-btn{padding:9px 14px;font-size:13px;font-weight:600;color:var(--c-text-2);border-bottom:2px solid transparent;transition:all var(--transition);cursor:pointer;white-space:nowrap;border-left:none;border-right:none;border-top:none;background:none;font-family:inherit}
+.hub-tab-btn:hover{color:var(--c-brand)}
+.hub-tab-btn.active{color:var(--c-brand);border-bottom-color:var(--c-brand)}
+
 /* ── Dark input calendar fix ── */
 .dark input[type="date"]::-webkit-calendar-picker-indicator,.dark input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1)}
 
@@ -2867,7 +2872,10 @@ function renderEventList() {
         </div>
       </div>
       <div class="flex gap-1 flex-shrink-0 ml-2">
-        <button class="qr-btn btn btn-ghost btn-icon" data-event="${ev.name}" title="QR Code" style="width:28px;height:28px">
+        <button class="hub-btn btn btn-ghost btn-icon" data-event-id="${ev.id}" data-event-name="${ev.name}" title="Hub do Evento" style="width:28px;height:28px">
+          <i class="fas fa-folder-open text-xs" style="color:var(--c-brand)"></i>
+        </button>
+        <button class="qr-btn btn btn-ghost btn-icon" data-event="${ev.name}" title="QR Code Cadastro" style="width:28px;height:28px">
           <i class="fas fa-qrcode text-xs" style="color:var(--c-text-2)"></i>
         </button>
         <button class="delete-btn btn btn-ghost btn-icon" data-id="${ev.id}" data-type="event" style="width:28px;height:28px">
@@ -2883,8 +2891,8 @@ document.getElementById('tab-admin-content').addEventListener('click', e => {
   const delBtn = e.target.closest('.delete-btn');
   if (qrBtn) {
     const eventName = qrBtn.dataset.event;
-    const baseUrl = window.location.href.split('?')[0];
-    const qrUrl = `${baseUrl}?event=${encodeURIComponent(eventName)}`;
+    const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/,'/');
+    const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
     document.getElementById('qr-event-name').textContent = eventName;
     const display = document.getElementById('qr-display'); display.innerHTML = '';
     new QRCode(display, { text: qrUrl, width: 200, height: 200, colorDark: '#0070c0', colorLight: '#ffffff' });
@@ -3377,8 +3385,340 @@ window.closeFilterSidebar = () => {
   document.getElementById('filter-sidebar-overlay')?.classList.add('hidden');
 };
 
+
+// ── Event Hub ─────────────────────────────────────────────
+let currentHubEventId = null;
+let hubData = {}; // local cache of hub data per event
+
+window.closeEventHub = () => document.getElementById('eventHubModal').classList.add('hidden');
+
+window.switchHubTab = (tab) => {
+  document.querySelectorAll('.hub-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.htab === tab));
+  document.querySelectorAll('.hub-tab-content').forEach(c => c.classList.toggle('hidden', c.id !== `hub-tab-${tab}`));
+};
+
+// Open hub for an event
+window.openEventHub = async (eventId, eventName) => {
+  currentHubEventId = eventId;
+  document.getElementById('hub-event-name').textContent = eventName;
+  switchHubTab('info');
+  document.getElementById('eventHubModal').classList.remove('hidden');
+
+  // Set QR URL
+  const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
+  const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
+  const qrInput = document.getElementById('hub-qr-url');
+  if (qrInput) qrInput.value = qrUrl;
+
+  // QR generate button
+  document.getElementById('hub-qr-gen-btn').onclick = () => {
+    const display = document.getElementById('hub-qr-display');
+    display.innerHTML = '';
+    display.style.display = 'flex';
+    new QRCode(display, { text: qrUrl, width: 160, height: 160, colorDark: '#0070c0', colorLight: '#ffffff' });
+  };
+
+  // Load saved hub data from Firestore
+  try {
+    const snap = await getDoc(doc(eventosRef, eventId));
+    if (snap.exists()) {
+      const ev = snap.data();
+      const hub = ev.hub || {};
+      hubData = hub;
+
+      // Populate info tab
+      document.getElementById('hub-desc').value = hub.desc || ev.description || '';
+      document.getElementById('hub-local').value = hub.local || '';
+      document.getElementById('hub-start').value = ev.startDate || '';
+      document.getElementById('hub-end').value = ev.endDate || '';
+      document.getElementById('hub-resp').value = hub.resp || '';
+      document.getElementById('hub-perfil').value = hub.perfil || '';
+      document.getElementById('hub-meta').value = ev.meta || '';
+      document.getElementById('hub-budget').value = hub.budget || '';
+      document.getElementById('hub-stand').value = hub.stand || '';
+
+      // Populate notas tab
+      document.getElementById('hub-notas').value = hub.notas || '';
+      renderHubChecklist(hub.checklist || []);
+
+      // Populate docs tab
+      renderHubDocs(hub.docs || []);
+
+      // Populate links tab
+      renderHubLinks(hub.links || []);
+    }
+  } catch(err) { console.error('Hub load error:', err); }
+};
+
+// Wire hub button clicks in admin tab
+document.getElementById('tab-admin-content').addEventListener('click', e => {
+  const hubBtn = e.target.closest('.hub-btn');
+  if (hubBtn) {
+    openEventHub(hubBtn.dataset.eventId, hubBtn.dataset.eventName);
+  }
+});
+
+// ── Save info ──
+window.saveHubInfo = async () => {
+  if (!currentHubEventId) return;
+  try {
+    const hub = hubData || {};
+    hub.desc = document.getElementById('hub-desc').value.trim();
+    hub.local = document.getElementById('hub-local').value.trim();
+    hub.resp = document.getElementById('hub-resp').value.trim();
+    hub.perfil = document.getElementById('hub-perfil').value.trim();
+    hub.budget = document.getElementById('hub-budget').value.trim();
+    hub.stand = document.getElementById('hub-stand').value.trim();
+    const meta = parseInt(document.getElementById('hub-meta').value) || 0;
+    const startDate = document.getElementById('hub-start').value;
+    const endDate = document.getElementById('hub-end').value;
+    await updateDoc(doc(eventosRef, currentHubEventId), { hub, meta, startDate, endDate });
+    showToast('Informações salvas!');
+  } catch(err) { showToast('Erro ao salvar.', 'error'); console.error(err); }
+};
+
+// ── Save notas ──
+window.saveHubNotas = async () => {
+  if (!currentHubEventId) return;
+  try {
+    hubData.notas = document.getElementById('hub-notas').value.trim();
+    await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData });
+    showToast('Notas salvas!');
+  } catch(err) { showToast('Erro ao salvar.', 'error'); }
+};
+
+// ── Checklist ──
+window.addHubCheckItem = async () => {
+  const inp = document.getElementById('hub-check-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!hubData.checklist) hubData.checklist = [];
+  hubData.checklist.push({ text, done: false, id: Date.now() });
+  inp.value = '';
+  renderHubChecklist(hubData.checklist);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+};
+
+function renderHubChecklist(items) {
+  const list = document.getElementById('hub-checklist');
+  if (!items || !items.length) { list.innerHTML = ''; return; }
+  list.innerHTML = items.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--c-border)">
+      <div onclick="toggleHubCheck(${i})" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--c-border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${item.done?'var(--c-green)':'transparent'};border-color:${item.done?'var(--c-green)':'var(--c-border)'}">
+        ${item.done ? '<i class="fas fa-check" style="color:white;font-size:9px"></i>' : ''}
+      </div>
+      <span style="flex:1;font-size:13px;text-decoration:${item.done?'line-through':'none'};color:${item.done?'var(--c-text-3)':'var(--c-text)'}">${item.text}</span>
+      <button onclick="removeHubCheck(${i})" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--c-text-3);font-size:11px"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+}
+
+window.toggleHubCheck = async (i) => {
+  if (!hubData.checklist) return;
+  hubData.checklist[i].done = !hubData.checklist[i].done;
+  renderHubChecklist(hubData.checklist);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+};
+
+window.removeHubCheck = async (i) => {
+  if (!hubData.checklist) return;
+  hubData.checklist.splice(i, 1);
+  renderHubChecklist(hubData.checklist);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+};
+
+// ── Docs ──
+const DOC_ICONS = { apresentacao:'📊', proposta:'📄', contrato:'📋', roteiro:'🗒️', planilha:'📈', outro:'📁' };
+
+window.addHubDoc = async () => {
+  const name = document.getElementById('hub-doc-name').value.trim();
+  const url = document.getElementById('hub-doc-url').value.trim();
+  const type = document.getElementById('hub-doc-type').value;
+  if (!name || !url) { showToast('Preencha nome e URL.', 'warn'); return; }
+  if (!hubData.docs) hubData.docs = [];
+  hubData.docs.push({ name, url, type, id: Date.now() });
+  document.getElementById('hub-doc-name').value = '';
+  document.getElementById('hub-doc-url').value = '';
+  renderHubDocs(hubData.docs);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+  showToast('Documento adicionado!');
+};
+
+function renderHubDocs(docs) {
+  const list = document.getElementById('hub-doc-list');
+  const empty = document.getElementById('hub-doc-empty');
+  if (!docs || !docs.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = docs.map((d, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--c-bg);border-radius:10px;border:1px solid var(--c-border)">
+      <span style="font-size:22px;flex-shrink:0">${DOC_ICONS[d.type]||'📁'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${d.name}</div>
+        <div style="font-size:11px;color:var(--c-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.url}</div>
+      </div>
+      <a href="${d.url}" target="_blank" class="btn btn-secondary text-sm" style="padding:6px 12px;flex-shrink:0"><i class="fas fa-external-link-alt"></i></a>
+      <button onclick="removeHubDoc(${i})" class="btn btn-ghost btn-icon" style="width:28px;height:28px;flex-shrink:0"><i class="fas fa-trash text-xs" style="color:var(--c-text-3)"></i></button>
+    </div>`).join('');
+}
+
+window.removeHubDoc = async (i) => {
+  if (!hubData.docs) return;
+  hubData.docs.splice(i, 1);
+  renderHubDocs(hubData.docs);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+};
+
+// ── Links ──
+window.addHubLink = async () => {
+  const label = document.getElementById('hub-link-label').value.trim();
+  const url = document.getElementById('hub-link-url').value.trim();
+  if (!label || !url) { showToast('Preencha nome e URL.', 'warn'); return; }
+  if (!hubData.links) hubData.links = [];
+  hubData.links.push({ label, url, id: Date.now() });
+  document.getElementById('hub-link-label').value = '';
+  document.getElementById('hub-link-url').value = '';
+  renderHubLinks(hubData.links);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+  showToast('Link adicionado!');
+};
+
+function renderHubLinks(links) {
+  const list = document.getElementById('hub-link-list');
+  const empty = document.getElementById('hub-link-empty');
+  if (!links || !links.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = links.map((l, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--c-bg);border-radius:9px;border:1px solid var(--c-border)">
+      <i class="fas fa-link" style="color:var(--c-brand);font-size:12px;flex-shrink:0"></i>
+      <div style="flex:1;min-width:0">
+        <a href="${l.url}" target="_blank" style="font-size:13px;font-weight:600;color:var(--c-brand);text-decoration:none">${l.label}</a>
+        <div style="font-size:11px;color:var(--c-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.url}</div>
+      </div>
+      <button onclick="removeHubLink(${i})" class="btn btn-ghost btn-icon" style="width:26px;height:26px;flex-shrink:0"><i class="fas fa-trash text-xs" style="color:var(--c-text-3)"></i></button>
+    </div>`).join('');
+}
+
+window.removeHubLink = async (i) => {
+  if (!hubData.links) return;
+  hubData.links.splice(i, 1);
+  renderHubLinks(hubData.links);
+  if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
+};
+
+window.copyHubQrUrl = () => {
+  const inp = document.getElementById('hub-qr-url');
+  if (inp) { navigator.clipboard.writeText(inp.value); showToast('Link copiado!'); }
+};
+
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
 </script>
+<!-- ══ EVENT HUB MODAL ══ -->
+<div id="eventHubModal" class="hidden modal-overlay" onclick="if(event.target===this)closeEventHub()">
+  <div class="modal-box modal-box-xl" style="max-width:760px">
+    <div style="padding:24px">
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c-text-3);margin-bottom:4px">Hub do Evento</div>
+          <h3 id="hub-event-name" style="font-size:20px;font-weight:800"></h3>
+        </div>
+        <button onclick="closeEventHub()" class="btn btn-ghost btn-icon"><i class="fas fa-times text-sm"></i></button>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--c-border);margin-bottom:20px">
+        <button class="hub-tab-btn active" data-htab="info" onclick="switchHubTab('info')">
+          <i class="fas fa-info-circle mr-1.5"></i>Informações
+        </button>
+        <button class="hub-tab-btn" data-htab="docs" onclick="switchHubTab('docs')">
+          <i class="fas fa-file-alt mr-1.5"></i>Documentos
+        </button>
+        <button class="hub-tab-btn" data-htab="links" onclick="switchHubTab('links')">
+          <i class="fas fa-link mr-1.5"></i>Links
+        </button>
+        <button class="hub-tab-btn" data-htab="notas" onclick="switchHubTab('notas')">
+          <i class="fas fa-sticky-note mr-1.5"></i>Notas
+        </button>
+      </div>
+
+      <!-- Tab: Info -->
+      <div id="hub-tab-info" class="hub-tab-content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div><label class="section-label">Descrição</label><textarea id="hub-desc" class="form-input" rows="4" placeholder="Descreva o evento, objetivos, público-alvo..."></textarea></div>
+          <div>
+            <div style="margin-bottom:12px"><label class="section-label">Local</label><input type="text" id="hub-local" class="form-input text-sm" placeholder="Ex: Centro de Convenções, São Paulo"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label class="section-label">Início</label><input type="date" id="hub-start" class="form-input text-sm"></div>
+              <div><label class="section-label">Fim</label><input type="date" id="hub-end" class="form-input text-sm"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:16px"><label class="section-label">Responsável pelo evento</label><input type="text" id="hub-resp" class="form-input text-sm" placeholder="Nome do responsável interno"></div>
+        <div style="margin-bottom:16px"><label class="section-label">Público-alvo / Perfil esperado</label><textarea id="hub-perfil" class="form-input" rows="2" placeholder="Ex: CTOs, Gerentes de TI de empresas com +200 funcionários..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+          <div><label class="section-label">Meta de leads</label><input type="number" id="hub-meta" class="form-input text-sm" placeholder="Ex: 200" min="0"></div>
+          <div><label class="section-label">Orçamento</label><input type="text" id="hub-budget" class="form-input text-sm" placeholder="Ex: R$ 50.000"></div>
+          <div><label class="section-label">Estande / Stand</label><input type="text" id="hub-stand" class="form-input text-sm" placeholder="Ex: Hall B, Box 24"></div>
+        </div>
+        <button class="btn btn-primary text-sm" onclick="saveHubInfo()"><i class="fas fa-save"></i>Salvar informações</button>
+      </div>
+
+      <!-- Tab: Docs -->
+      <div id="hub-tab-docs" class="hub-tab-content hidden">
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <input type="text" id="hub-doc-name" class="form-input text-sm flex-1" placeholder="Nome do documento">
+          <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Google Drive, SharePoint, Dropbox...)">
+          <select id="hub-doc-type" class="form-input text-sm w-auto">
+            <option value="apresentacao">📊 Apresentação</option>
+            <option value="proposta">📄 Proposta</option>
+            <option value="contrato">📋 Contrato</option>
+            <option value="roteiro">🗒️ Roteiro</option>
+            <option value="planilha">📈 Planilha</option>
+            <option value="outro">📁 Outro</option>
+          </select>
+          <button class="btn btn-primary text-sm" onclick="addHubDoc()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div id="hub-doc-list" class="space-y-2"></div>
+        <p id="hub-doc-empty" class="text-sm text-center py-8" style="color:var(--c-text-3)">Nenhum documento adicionado ainda.</p>
+      </div>
+
+      <!-- Tab: Links -->
+      <div id="hub-tab-links" class="hub-tab-content hidden">
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <input type="text" id="hub-link-label" class="form-input text-sm" placeholder="Nome do link" style="flex:0 0 200px">
+          <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
+          <button class="btn btn-primary text-sm" onclick="addHubLink()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div id="hub-link-list" class="space-y-2"></div>
+        <p id="hub-link-empty" class="text-sm text-center py-8" style="color:var(--c-text-3)">Nenhum link adicionado ainda.</p>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--c-border)">
+          <p class="section-label">Link do formulário público (QR Code)</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="hub-qr-url" class="form-input text-sm flex-1" readonly style="background:var(--c-bg);font-family:monospace;font-size:11px">
+            <button class="btn btn-secondary text-sm" onclick="copyHubQrUrl()"><i class="fas fa-copy"></i>Copiar</button>
+            <button class="btn btn-secondary text-sm" id="hub-qr-gen-btn"><i class="fas fa-qrcode"></i>QR</button>
+          </div>
+          <div id="hub-qr-display" style="margin-top:12px;display:none;justify-content:center"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Notas -->
+      <div id="hub-tab-notas" class="hub-tab-content hidden">
+        <div style="margin-bottom:12px"><label class="section-label">Notas internas da equipe</label>
+          <textarea id="hub-notas" class="form-input" rows="8" placeholder="Briefing, instruções para a equipe, informações importantes, dress code, logística..."></textarea>
+        </div>
+        <div style="margin-bottom:16px"><label class="section-label">Checklist pré-evento</label>
+          <div id="hub-checklist" class="space-y-2 mb-3"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item do checklist..." onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
+            <button class="btn btn-secondary text-sm" onclick="addHubCheckItem()"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <button class="btn btn-primary text-sm" onclick="saveHubNotas()"><i class="fas fa-save"></i>Salvar notas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
