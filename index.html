@@ -330,6 +330,10 @@ tr:hover .quick-note{display:block}
   .mobile-nav{display:none}
 }
 
+/* ── Hub visibility ── */
+#tab-hub-content.hidden #hub-detail-view,
+#tab-hub-content.hidden #hub-list-view { display: none !important; }
+
 /* ── Hub tab buttons ── */
 
 /* ── Hub read-only state ── */
@@ -920,7 +924,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
             </div>
 
             <!-- Info card (edit) — admin only -->
-            <div class="card hub-admin-only" id="hub-info-edit-card" style="display:none">
+            <div class="card" id="hub-info-edit-card" style="display:none">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold text-sm flex items-center gap-2">
                   <i class="fas fa-pen" style="color:var(--c-brand)"></i>Editar informações
@@ -3649,9 +3653,11 @@ window.openEventHub = async (eventId, eventName) => {
   document.getElementById('hub-detail-view').style.display = '';
   toggleHubEditMode(false);
 
-  // Show/hide admin controls
+  // Show/hide admin controls (scoped to hub detail view only)
   const isHubAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
-  document.querySelectorAll('.hub-admin-only').forEach(el => { el.style.display = isHubAdmin ? '' : 'none'; });
+  document.querySelectorAll('#hub-detail-view .hub-admin-only').forEach(el => {
+    el.style.display = isHubAdmin ? '' : 'none';
+  });
 
   // Load event data
   try {
@@ -4054,6 +4060,11 @@ function renderHubTab() {
 }
 
 // ── Init ──────────────────────────────────────────────────
+// Ensure hub detail view is hidden on load
+const _hubDetail = document.getElementById('hub-detail-view');
+if (_hubDetail) _hubDetail.style.display = 'none';
+const _hubList = document.getElementById('hub-list-view');  
+if (_hubList) _hubList.style.display = '';
 renderSavedFilters();
 </script>
 <!-- ══ EVENT HUB MODAL ══ -->
