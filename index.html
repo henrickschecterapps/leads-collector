@@ -3959,7 +3959,7 @@ function renderHubTab() {
     const checkDone = (hub.checklist || []).filter(i => i.done).length;
 
     return `
-    <div onclick="openEventHub('${ev.id}', '${ev.name.replace(/'/g,"\\'")}\")"
+    <div class="hub-event-card" data-event-id="${ev.id}" data-event-name="${ev.name}"
          style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:16px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s"
          onmouseover="this.style.boxShadow='0 8px 28px rgba(0,0,0,.1)';this.style.transform='translateY(-2px)'"
          onmouseout="this.style.boxShadow='';this.style.transform=''">
@@ -3999,6 +3999,13 @@ function renderHubTab() {
   }).join('');
 }
 
+
+// Hub card click delegation
+document.getElementById('hub-event-grid').addEventListener('click', e => {
+  const card = e.target.closest('.hub-event-card');
+  if (card) openEventHub(card.dataset.eventId, card.dataset.eventName);
+});
+
 // ── Init ──────────────────────────────────────────────────
 // Ensure hub detail view is hidden on load
 const _hubDetail = document.getElementById('hub-detail-view');
@@ -4007,74 +4014,5 @@ const _hubList = document.getElementById('hub-list-view');
 if (_hubList) _hubList.style.display = '';
 renderSavedFilters();
 </script>
-<!-- ══ EVENT HUB MODAL ══ -->
-        </div>
-        <div style="margin-bottom:16px"><label class="section-label">Responsável pelo evento</label><input type="text" id="hub-resp" class="form-input text-sm" placeholder="Nome do responsável interno"></div>
-        <div style="margin-bottom:16px"><label class="section-label">Público-alvo / Perfil esperado</label><textarea id="hub-perfil" class="form-input" rows="2" placeholder="Ex: CTOs, Gerentes de TI de empresas com +200 funcionários..."></textarea></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
-          <div><label class="section-label">Meta de leads</label><input type="number" id="hub-meta" class="form-input text-sm" placeholder="Ex: 200" min="0"></div>
-          <div><label class="section-label">Orçamento</label><input type="text" id="hub-budget" class="form-input text-sm" placeholder="Ex: R$ 50.000"></div>
-          <div><label class="section-label">Estande / Stand</label><input type="text" id="hub-stand" class="form-input text-sm" placeholder="Ex: Hall B, Box 24"></div>
-        </div>
-        <button class="btn btn-primary text-sm hub-admin-only" onclick="saveHubInfo()"><i class="fas fa-save"></i>Salvar informações</button>
-      </div>
-
-      <!-- Tab: Docs -->
-      <div id="hub-tab-docs" class="hub-tab-content hidden">
-        <div style="display:flex;gap:10px;margin-bottom:16px" class="hub-add-row">
-          <input type="text" id="hub-doc-name" class="form-input text-sm flex-1" placeholder="Nome do documento">
-          <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Google Drive, SharePoint, Dropbox...)">
-          <select id="hub-doc-type" class="form-input text-sm w-auto">
-            <option value="apresentacao">📊 Apresentação</option>
-            <option value="proposta">📄 Proposta</option>
-            <option value="contrato">📋 Contrato</option>
-            <option value="roteiro">🗒️ Roteiro</option>
-            <option value="planilha">📈 Planilha</option>
-            <option value="outro">📁 Outro</option>
-          </select>
-          <button class="btn btn-primary text-sm" onclick="addHubDoc()"><i class="fas fa-plus"></i></button>
-        </div>
-        <div id="hub-doc-list" class="space-y-2"></div>
-        <p id="hub-doc-empty" class="text-sm text-center py-8" style="color:var(--c-text-3)">Nenhum documento adicionado ainda.</p>
-      </div>
-
-      <!-- Tab: Links -->
-      <div id="hub-tab-links" class="hub-tab-content hidden">
-        <div style="display:flex;gap:10px;margin-bottom:16px" class="hub-add-row">
-          <input type="text" id="hub-link-label" class="form-input text-sm" placeholder="Nome do link" style="flex:0 0 200px">
-          <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
-          <button class="btn btn-primary text-sm" onclick="addHubLink()"><i class="fas fa-plus"></i></button>
-        </div>
-        <div id="hub-link-list" class="space-y-2"></div>
-        <p id="hub-link-empty" class="text-sm text-center py-8" style="color:var(--c-text-3)">Nenhum link adicionado ainda.</p>
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--c-border)">
-          <p class="section-label">Link do formulário público (QR Code)</p>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="text" id="hub-qr-url" class="form-input text-sm flex-1" readonly style="background:var(--c-bg);font-family:monospace;font-size:11px">
-            <button class="btn btn-secondary text-sm" onclick="copyHubQrUrl()"><i class="fas fa-copy"></i>Copiar</button>
-            <button class="btn btn-secondary text-sm" id="hub-qr-gen-btn"><i class="fas fa-qrcode"></i>QR</button>
-          </div>
-          <div id="hub-qr-display" style="margin-top:12px;display:none;justify-content:center"></div>
-        </div>
-      </div>
-
-      <!-- Tab: Notas -->
-      <div id="hub-tab-notas" class="hub-tab-content hidden">
-        <div style="margin-bottom:12px"><label class="section-label">Notas internas da equipe</label>
-          <textarea id="hub-notas" class="form-input" rows="8" placeholder="Briefing, instruções para a equipe, informações importantes, dress code, logística..."></textarea>
-        </div>
-        <div style="margin-bottom:16px"><label class="section-label">Checklist pré-evento</label>
-          <div id="hub-checklist" class="space-y-2 mb-3"></div>
-          <div style="display:flex;gap:8px" class="hub-add-row">
-            <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item do checklist..." onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
-            <button class="btn btn-secondary text-sm" onclick="addHubCheckItem()"><i class="fas fa-plus"></i></button>
-          </div>
-        </div>
-        <button class="btn btn-primary text-sm hub-admin-only" onclick="saveHubNotas()"><i class="fas fa-save"></i>Salvar notas</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
