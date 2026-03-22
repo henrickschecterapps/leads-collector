@@ -331,6 +331,13 @@ tr:hover .quick-note{display:block}
 }
 
 /* ── Hub tab buttons ── */
+
+/* ── Hub read-only state ── */
+#hub-desc:read-only, #hub-local:read-only, #hub-resp:read-only,
+#hub-perfil:read-only, #hub-meta:read-only, #hub-budget:read-only,
+#hub-stand:read-only, #hub-notas:read-only {
+  background:var(--c-bg);cursor:default;
+}
 .hub-tab-btn{padding:9px 14px;font-size:13px;font-weight:600;color:var(--c-text-2);border-bottom:2px solid transparent;transition:all var(--transition);cursor:pointer;white-space:nowrap;border-left:none;border-right:none;border-top:none;background:none;font-family:inherit}
 .hub-tab-btn:hover{color:var(--c-brand)}
 .hub-tab-btn.active{color:var(--c-brand);border-bottom-color:var(--c-brand)}
@@ -458,6 +465,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
         <button id="tab-cadastro-btn" class="tab-btn"><i class="fas fa-plus-circle mr-1.5"></i>Novo Lead</button>
         <button id="tab-registros-btn" class="tab-btn"><i class="fas fa-list mr-1.5"></i>Registros</button>
         <button id="tab-agenda-btn" class="tab-btn"><i class="fas fa-calendar mr-1.5"></i>Agenda</button>
+        <button id="tab-hub-btn" class="tab-btn"><i class="fas fa-folder-open mr-1.5"></i>Eventos</button>
         <button id="tab-analytics-btn" class="tab-btn"><i class="fas fa-chart-pie mr-1.5"></i>Analytics</button>
         <button id="tab-admin-btn" class="tab-btn hidden"><i class="fas fa-cog mr-1.5"></i>Admin</button>
         <button id="tab-usuarios-btn" class="tab-btn hidden"><i class="fas fa-users mr-1.5"></i>Usuários</button>
@@ -509,6 +517,10 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
       <button id="snav-agenda" class="sidenav-item" data-tab="agenda" title="">
         <i class="fas fa-calendar"></i>
         <span class="snav-tooltip">Agenda</span>
+      </button>
+      <button id="snav-hub" class="sidenav-item" data-tab="hub" title="">
+        <i class="fas fa-folder-open"></i>
+        <span class="snav-tooltip">Hub de Eventos</span>
       </button>
       <button id="snav-analytics" class="sidenav-item" data-tab="analytics" title="">
         <i class="fas fa-chart-pie"></i>
@@ -855,7 +867,26 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
       </div>
     </div>
 
-    <!-- ══ TAB: ANALYTICS ══ -->
+    <!-- ══ TAB: HUB DE EVENTOS ══ -->
+    <div id="tab-hub-content" class="hidden fade-up">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-2xl font-extrabold">Hub de Eventos</h2>
+          <p class="text-sm mt-0.5" style="color:var(--c-text-2)">Informações, documentos e links por evento</p>
+        </div>
+      </div>
+
+      <!-- Event selector -->
+      <div class="card mb-4 p-0 overflow-hidden">
+        <div id="hub-event-list" class="divide-y" style="border-color:var(--c-border)"></div>
+        <div id="hub-event-empty" class="p-8 text-center text-sm" style="color:var(--c-text-3);display:none">
+          <i class="fas fa-calendar-times text-3xl mb-3 block opacity-20"></i>
+          Nenhum evento cadastrado.
+        </div>
+      </div>
+    </div>
+
+        <!-- ══ TAB: ANALYTICS ══ -->
     <div id="tab-analytics-content" class="hidden fade-up">
       <div class="flex items-center justify-between mb-5">
         <div><h2 class="text-2xl font-extrabold">Analytics</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Desempenho de captação</p></div>
@@ -1439,7 +1470,7 @@ function handleCmdNavigation(e){
 }
 
 // ── Tabs ──────────────────────────────────────────────────
-const TABS=['dashboard','cadastro','registros','agenda','analytics','admin','usuarios'];
+const TABS=['dashboard','cadastro','registros','agenda','hub','analytics','admin','usuarios'];
 TABS.forEach(t=>{
   const btn=document.getElementById(`tab-${t}-btn`);
   if(btn)btn.addEventListener('click',()=>switchTab(t));
@@ -1466,6 +1497,7 @@ function switchTab(target){
   if(target==='registros'){clientSort={key:'createdAt',dir:'desc'};handleFilterChange();}
   if(target==='analytics')renderAnalytics();
   if(target==='agenda')renderAgenda();
+  if(target==='hub')renderHubTab();
 }
 window.switchTab=switchTab;
 
@@ -1625,6 +1657,7 @@ function setupListeners(){
     allEvents=snap.docs.map(d=>({id:d.id,...d.data()}));
     populateEventDropdowns();renderEventList();autoSelectEvent();populateBrindeEventoSelect();
     if(!document.getElementById('tab-dashboard-content').classList.contains('hidden'))renderDashboard();
+    if(!document.getElementById('tab-hub-content').classList.contains('hidden'))renderHubTab();
   });
   if(unsubUsers)unsubUsers();
   unsubUsers=onSnapshot(query(usersRef),snap=>{
@@ -3404,6 +3437,14 @@ window.openEventHub = async (eventId, eventName) => {
   switchHubTab('info');
   document.getElementById('eventHubModal').classList.remove('hidden');
 
+  // Show/hide admin-only elements based on role
+  const isHubAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
+  document.querySelectorAll('.hub-admin-only').forEach(el => { el.style.display = isHubAdmin ? '' : 'none'; });
+  document.querySelectorAll('.hub-add-row').forEach(el => { el.style.display = isHubAdmin ? '' : 'none'; });
+  ['hub-desc','hub-local','hub-start','hub-end','hub-resp','hub-perfil','hub-meta','hub-budget','hub-stand','hub-notas'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.readOnly = !isHubAdmin;
+  });
+
   // Set QR URL
   const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
   const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
@@ -3609,6 +3650,77 @@ window.copyHubQrUrl = () => {
   if (inp) { navigator.clipboard.writeText(inp.value); showToast('Link copiado!'); }
 };
 
+
+// ── Hub de Eventos (tab para todos os usuários) ───────────
+function renderHubTab() {
+  const list = document.getElementById('hub-event-list');
+  const empty = document.getElementById('hub-event-empty');
+  if (!list) return;
+
+  const isAdmin = currentUserRole === 'admin';
+
+  if (!allEvents.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Count leads per event
+  const leadCounts = {};
+  allEvents.forEach(ev => {
+    leadCounts[ev.name] = allClients.filter(c => c.evento === ev.name).length;
+  });
+
+  list.innerHTML = allEvents.map(ev => {
+    const hub = ev.hub || {};
+    const count = leadCounts[ev.name] || 0;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const parse = s => s ? new Date(s + 'T00:00:00') : null;
+    const start = parse(ev.startDate), end = parse(ev.endDate);
+    const isActive = start && end && start <= today && today <= end;
+    const isPast = end && end < today;
+    const isFuture = start && start > today;
+    const statusBadge = isActive
+      ? `<span class="badge badge-green text-xs">Acontecendo agora</span>`
+      : isPast
+        ? `<span class="badge badge-gray text-xs">Encerrado</span>`
+        : `<span class="badge badge-amber text-xs">Em breve</span>`;
+
+    const hasContent = hub.desc || (hub.docs && hub.docs.length) || (hub.links && hub.links.length) || hub.notas;
+
+    return `
+    <div class="p-4 hover:bg-[var(--c-bg)] transition-colors cursor-pointer" onclick="openEventHub('${ev.id}', '${ev.name.replace(/'/g,"\\'")}')">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${ev.color ? ev.color + '20' : 'var(--c-brand-dim)'}">
+            <span style="font-size:18px">📁</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-sm">${ev.name}</span>
+              ${statusBadge}
+              ${hasContent ? '<span class="badge badge-blue text-xs">Com conteúdo</span>' : ''}
+            </div>
+            <div class="text-xs mt-0.5 flex items-center gap-3 flex-wrap" style="color:var(--c-text-3)">
+              ${ev.startDate ? `<span><i class="fas fa-calendar mr-1"></i>${new Date(ev.startDate+'T00:00:00').toLocaleDateString('pt-BR')} — ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
+              ${hub.local ? `<span><i class="fas fa-map-marker-alt mr-1"></i>${hub.local}</span>` : ''}
+              <span><i class="fas fa-users mr-1"></i>${count} leads</span>
+              ${hub.docs && hub.docs.length ? `<span><i class="fas fa-file-alt mr-1"></i>${hub.docs.length} docs</span>` : ''}
+              ${hub.links && hub.links.length ? `<span><i class="fas fa-link mr-1"></i>${hub.links.length} links</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          ${ev.meta ? `<div class="text-right hidden sm:block"><div class="text-xs font-bold">${Math.round(count/ev.meta*100)}%</div><div class="text-xs" style="color:var(--c-text-3)">da meta</div></div>` : ''}
+          <i class="fas fa-chevron-right text-xs" style="color:var(--c-text-3)"></i>
+        </div>
+      </div>
+      ${hub.desc ? `<p class="text-xs mt-2 line-clamp-1" style="color:var(--c-text-2)">${hub.desc}</p>` : ''}
+    </div>`;
+  }).join('<hr style="border-color:var(--c-border)">');
+}
+
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
 </script>
@@ -3660,12 +3772,12 @@ renderSavedFilters();
           <div><label class="section-label">Orçamento</label><input type="text" id="hub-budget" class="form-input text-sm" placeholder="Ex: R$ 50.000"></div>
           <div><label class="section-label">Estande / Stand</label><input type="text" id="hub-stand" class="form-input text-sm" placeholder="Ex: Hall B, Box 24"></div>
         </div>
-        <button class="btn btn-primary text-sm" onclick="saveHubInfo()"><i class="fas fa-save"></i>Salvar informações</button>
+        <button class="btn btn-primary text-sm hub-admin-only" onclick="saveHubInfo()"><i class="fas fa-save"></i>Salvar informações</button>
       </div>
 
       <!-- Tab: Docs -->
       <div id="hub-tab-docs" class="hub-tab-content hidden">
-        <div style="display:flex;gap:10px;margin-bottom:16px">
+        <div style="display:flex;gap:10px;margin-bottom:16px" class="hub-add-row">
           <input type="text" id="hub-doc-name" class="form-input text-sm flex-1" placeholder="Nome do documento">
           <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Google Drive, SharePoint, Dropbox...)">
           <select id="hub-doc-type" class="form-input text-sm w-auto">
@@ -3684,7 +3796,7 @@ renderSavedFilters();
 
       <!-- Tab: Links -->
       <div id="hub-tab-links" class="hub-tab-content hidden">
-        <div style="display:flex;gap:10px;margin-bottom:16px">
+        <div style="display:flex;gap:10px;margin-bottom:16px" class="hub-add-row">
           <input type="text" id="hub-link-label" class="form-input text-sm" placeholder="Nome do link" style="flex:0 0 200px">
           <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
           <button class="btn btn-primary text-sm" onclick="addHubLink()"><i class="fas fa-plus"></i></button>
@@ -3709,12 +3821,12 @@ renderSavedFilters();
         </div>
         <div style="margin-bottom:16px"><label class="section-label">Checklist pré-evento</label>
           <div id="hub-checklist" class="space-y-2 mb-3"></div>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px" class="hub-add-row">
             <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item do checklist..." onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
             <button class="btn btn-secondary text-sm" onclick="addHubCheckItem()"><i class="fas fa-plus"></i></button>
           </div>
         </div>
-        <button class="btn btn-primary text-sm" onclick="saveHubNotas()"><i class="fas fa-save"></i>Salvar notas</button>
+        <button class="btn btn-primary text-sm hub-admin-only" onclick="saveHubNotas()"><i class="fas fa-save"></i>Salvar notas</button>
       </div>
     </div>
   </div>
