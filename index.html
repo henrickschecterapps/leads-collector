@@ -117,6 +117,52 @@ select.form-input{cursor:pointer}
 .tab-btn.active{color:var(--c-brand);border-bottom-color:var(--c-brand)}
 .tab-btn.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--c-brand);border-radius:99px 99px 0 0}
 
+/* ── Sidebar vertical nav ── */
+.app-layout{display:flex;min-height:100vh;flex-direction:column}
+.app-body{display:flex;flex:1;overflow:hidden}
+.sidenav{width:56px;background:var(--c-surface);border-right:1px solid var(--c-border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
+.sidenav-item{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition);position:relative;border:none;background:transparent;color:var(--c-text-3)}
+.sidenav-item:hover{background:var(--c-brand-dim);color:var(--c-brand)}
+.sidenav-item.active{background:var(--c-brand-dim);color:var(--c-brand)}
+.sidenav-item.active::before{content:'';position:absolute;left:-1px;top:25%;bottom:25%;width:3px;background:var(--c-brand);border-radius:0 3px 3px 0}
+.sidenav-item i{font-size:15px}
+.sidenav-item .snav-tooltip{position:absolute;left:48px;top:50%;transform:translateY(-50%);background:var(--c-text);color:var(--c-bg);font-size:11px;font-weight:600;padding:4px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100}
+.sidenav-item .snav-tooltip::before{content:'';position:absolute;right:100%;top:50%;transform:translateY(-50%);border:4px solid transparent;border-right-color:var(--c-text)}
+.sidenav-item:hover .snav-tooltip{opacity:1}
+.sidenav-divider{width:24px;height:1px;background:var(--c-border);margin:4px 0}
+.app-main{flex:1;overflow-y:auto;padding:20px 20px 20px 20px;min-width:0}
+
+/* ── Avatar initials ── */
+.avatar-initials{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;letter-spacing:.02em;color:white}
+
+/* ── Section label (uppercase) ── */
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--c-text-3);margin-bottom:8px;display:block}
+
+/* ── KPI card with sparkline ── */
+.kpi-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-lg);padding:16px 18px;position:relative;overflow:hidden;transition:all var(--transition);cursor:default}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-text-3);margin-bottom:6px}
+.kpi-value{font-size:28px;font-weight:800;color:var(--c-text);line-height:1;font-variant-numeric:tabular-nums}
+.kpi-delta{font-size:11px;font-weight:600;margin-top:4px;display:flex;align-items:center;gap:3px}
+.kpi-delta.up{color:var(--c-green)}
+.kpi-delta.neutral{color:var(--c-text-3)}
+.kpi-delta.down{color:var(--c-red)}
+.kpi-sparkline{position:absolute;bottom:0;right:0;opacity:.2}
+.kpi-icon{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px}
+
+/* ── Toast upgraded ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:600;transform:translateY(100px);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);max-width:360px;border:1px solid transparent}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:white}
+.toast-success{background:var(--c-green-dim);color:var(--c-green);border-color:color-mix(in srgb,var(--c-green) 30%,transparent)}
+.toast-success .toast-icon{background:var(--c-green)}
+.toast-error{background:var(--c-red-dim);color:var(--c-red);border-color:color-mix(in srgb,var(--c-red) 30%,transparent)}
+.toast-error .toast-icon{background:var(--c-red)}
+.toast-warn{background:var(--c-amber-dim);color:var(--c-amber);border-color:color-mix(in srgb,var(--c-amber) 30%,transparent)}
+.toast-warn .toast-icon{background:var(--c-amber)}
+.toast-info{background:var(--c-brand-dim);color:var(--c-brand);border-color:color-mix(in srgb,var(--c-brand) 30%,transparent)}
+.toast-info .toast-icon{background:var(--c-brand)}
+
 /* ── Data table ── */
 .data-table{width:100%;border-collapse:collapse;font-size:13px}
 .data-table th{padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--c-text-3);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--c-border);background:var(--c-bg);white-space:nowrap}
@@ -276,8 +322,9 @@ tr:hover .quick-note{display:block}
   .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;font-size:9px;font-weight:700;color:var(--c-text-3);cursor:pointer;transition:color var(--transition)}
   .mobile-nav-item.active{color:var(--c-brand)}
   .mobile-nav-item i{font-size:18px}
-  #app-container main{padding-bottom:70px}
+  .app-main{padding-bottom:70px!important}
   .desktop-tabs{display:none}
+  .sidenav{display:none!important}
 }
 @media(min-width:641px){
   .mobile-nav{display:none}
@@ -387,18 +434,20 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 </div>
 
 <!-- ═══════════════ APP ═══════════════ -->
-<div id="app-container" class="hidden min-h-screen flex flex-col">
+<div id="app-container" class="hidden" style="min-height:100vh;display:flex;flex-direction:column">
 
   <!-- Header -->
-  <header class="sticky-header" style="background:var(--c-surface);border-bottom:1px solid var(--c-border);box-shadow:0 1px 0 var(--c-border)">
-    <div class="max-w-screen-2xl mx-auto px-4 h-13 flex items-center justify-between" style="height:52px">
+  <header class="sticky-header" style="background:var(--c-surface);border-bottom:1px solid var(--c-border);height:52px;display:flex;align-items:center;z-index:20">
+    <div style="width:100%;max-width:100%;padding:0 16px;display:flex;align-items:center;justify-content:space-between">
       <!-- Logo -->
-      <div class="flex items-center gap-2.5 flex-shrink-0">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0070c0,#3b82f6)"><i class="fas fa-bolt text-white text-sm"></i></div>
-        <span class="font-extrabold text-sm hidden sm:block" style="color:var(--c-text)">Leads Collector</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#0070c0,#3b82f6);display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-bolt" style="color:white;font-size:13px"></i>
+        </div>
+        <span style="font-weight:800;font-size:14px;color:var(--c-text)" class="hidden sm:block">Leads Collector</span>
       </div>
 
-      <!-- Desktop tabs -->
+      <!-- Desktop tabs (hidden on mobile, replaced by sidenav) -->
       <nav class="desktop-tabs flex overflow-x-auto no-scrollbar border-b-0">
         <button id="tab-dashboard-btn" class="tab-btn"><i class="fas fa-home mr-1.5"></i>Início</button>
         <button id="tab-cadastro-btn" class="tab-btn"><i class="fas fa-plus-circle mr-1.5"></i>Novo Lead</button>
@@ -410,16 +459,13 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
       </nav>
 
       <!-- Right actions -->
-      <div class="flex items-center gap-1 flex-shrink-0">
-        <!-- Cmd K hint desktop only -->
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         <button id="cmd-k-btn" class="btn btn-ghost btn-icon hidden sm:flex" title="Busca rápida (Ctrl+K)">
           <i class="fas fa-search text-sm" style="color:var(--c-text-2)"></i>
         </button>
-        <!-- Compact mode toggle -->
         <button id="compact-toggle-btn" class="btn btn-ghost btn-icon hidden sm:flex" title="Modo compacto">
           <i class="fas fa-compress-alt text-sm" style="color:var(--c-text-2)"></i>
         </button>
-        <!-- Notification bell -->
         <div class="relative">
           <button id="notif-btn" class="btn btn-ghost btn-icon relative">
             <i class="fas fa-bell text-sm" style="color:var(--c-text-2)"></i>
@@ -427,8 +473,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
           </button>
           <div id="notif-panel" class="notif-panel hidden"></div>
         </div>
-        <span id="welcomeMessage" class="text-xs hidden md:block mx-1" style="color:var(--c-text-3)"></span>
-        <button id="settings-btn" class="btn btn-ghost btn-icon"><i class="fas fa-user-circle text-sm" style="color:var(--c-text-2)"></i></button>
+        <div id="welcomeMessage-avatar" class="avatar-initials hidden sm:flex" style="background:var(--c-brand);font-size:11px;cursor:pointer" onclick="document.getElementById('settings-btn').click()" title="Meu perfil"></div>
+        <button id="settings-btn" class="btn btn-ghost btn-icon hidden"><i class="fas fa-user-circle text-sm" style="color:var(--c-text-2)"></i></button>
         <button id="theme-toggle" class="btn btn-ghost btn-icon">
           <i id="theme-toggle-dark-icon" class="fas fa-moon hidden text-sm" style="color:var(--c-text-2)"></i>
           <i id="theme-toggle-light-icon" class="fas fa-sun hidden text-sm" style="color:var(--c-text-2)"></i>
@@ -438,7 +484,43 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
   </header>
 
-  <main class="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-5">
+  <!-- Body: sidenav + main -->
+  <div style="display:flex;flex:1;overflow:hidden">
+
+    <!-- Vertical sidenav (desktop only) -->
+    <aside class="sidenav hidden sm:flex flex-col" id="sidenav">
+      <button id="snav-dashboard" class="sidenav-item active" data-tab="dashboard" title="">
+        <i class="fas fa-home"></i>
+        <span class="snav-tooltip">Início</span>
+      </button>
+      <button id="snav-cadastro" class="sidenav-item" data-tab="cadastro" title="">
+        <i class="fas fa-plus-circle"></i>
+        <span class="snav-tooltip">Novo Lead</span>
+      </button>
+      <button id="snav-registros" class="sidenav-item" data-tab="registros" title="">
+        <i class="fas fa-list"></i>
+        <span class="snav-tooltip">Registros</span>
+      </button>
+      <button id="snav-agenda" class="sidenav-item" data-tab="agenda" title="">
+        <i class="fas fa-calendar"></i>
+        <span class="snav-tooltip">Agenda</span>
+      </button>
+      <button id="snav-analytics" class="sidenav-item" data-tab="analytics" title="">
+        <i class="fas fa-chart-pie"></i>
+        <span class="snav-tooltip">Analytics</span>
+      </button>
+      <div class="sidenav-divider"></div>
+      <button id="snav-admin" class="sidenav-item hidden" data-tab="admin" title="">
+        <i class="fas fa-cog"></i>
+        <span class="snav-tooltip">Admin</span>
+      </button>
+      <button id="snav-usuarios" class="sidenav-item hidden" data-tab="usuarios" title="">
+        <i class="fas fa-users"></i>
+        <span class="snav-tooltip">Usuários</span>
+      </button>
+    </aside>
+
+  <main class="app-main" id="app-main">
 
     <!-- ══ TAB: DASHBOARD ══ -->
     <div id="tab-dashboard-content" class="hidden fade-up">
@@ -878,6 +960,9 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
   </main>
 
+  </main>
+  </div><!-- end app-body -->
+
   <!-- Mobile bottom nav -->
   <nav class="mobile-nav">
     <div class="mobile-nav-item active" data-tab="dashboard"><i class="fas fa-home"></i><span>Início</span></div>
@@ -1249,12 +1334,13 @@ document.getElementById('compact-toggle-btn2')?.addEventListener('click',()=>{is
 // ── Toast ─────────────────────────────────────────────────
 function showToast(msg,type='success',duration=3500){
   const t=document.getElementById('toast');
-  const icons={success:'fa-check-circle',error:'fa-times-circle',warn:'fa-exclamation-triangle',info:'fa-info-circle'};
+  const icons={success:'fa-check',error:'fa-times',warn:'fa-exclamation',info:'fa-info'};
   t.className=`toast toast-${type}`;
-  t.innerHTML=`<i class="fas ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+  t.innerHTML=`<div class="toast-icon"><i class="fas ${icons[type]||icons.info}" style="font-size:10px"></i></div><span style="flex:1">${msg}</span>`;
   setTimeout(()=>t.classList.add('show'),10);
   setTimeout(()=>t.classList.remove('show'),duration);
 }
+window.showToast=showToast;
 window.showToast=showToast;
 
 // ── Offline ───────────────────────────────────────────────
@@ -1352,6 +1438,9 @@ const TABS=['dashboard','cadastro','registros','agenda','analytics','admin','usu
 TABS.forEach(t=>{
   const btn=document.getElementById(`tab-${t}-btn`);
   if(btn)btn.addEventListener('click',()=>switchTab(t));
+  // Also wire sidenav items
+  const sItem=document.getElementById(`snav-${t}`);
+  if(sItem)sItem.addEventListener('click',()=>switchTab(t));
 });
 // Mobile nav
 document.querySelectorAll('.mobile-nav-item').forEach(item=>{
@@ -1359,8 +1448,12 @@ document.querySelectorAll('.mobile-nav-item').forEach(item=>{
 });
 function switchTab(target){
   TABS.forEach(t=>{
-    const btn=document.getElementById(`tab-${t}-btn`),content=document.getElementById(`tab-${t}-content`),mItem=document.querySelector(`.mobile-nav-item[data-tab="${t}"]`);
+    const btn=document.getElementById(`tab-${t}-btn`);
+    const content=document.getElementById(`tab-${t}-content`);
+    const mItem=document.querySelector(`.mobile-nav-item[data-tab="${t}"]`);
+    const sItem=document.getElementById(`snav-${t}`);
     if(btn)btn.classList.toggle('active',t===target);
+    if(sItem)sItem.classList.toggle('active',t===target);
     if(content){content.classList.toggle('hidden',t!==target);if(t===target){content.classList.add('fade-up');setTimeout(()=>content.classList.remove('fade-up'),300);}}
     if(mItem)mItem.classList.toggle('active',t===target);
   });
@@ -1499,6 +1592,8 @@ function updateUIVisibility(){
   const isAdmin=currentUserRole==='admin',isEditor=currentUserRole==='editor';
   document.getElementById('tab-admin-btn').classList.toggle('hidden',!isAdmin);
   document.getElementById('tab-usuarios-btn').classList.toggle('hidden',!isAdmin);
+  document.getElementById('snav-admin')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('snav-usuarios')?.classList.toggle('hidden',!isAdmin);
   document.getElementById('exportXlsxButton').classList.toggle('hidden',!(isAdmin||isEditor));
   document.getElementById('importXlsxButton').classList.toggle('hidden',!(isAdmin||isEditor));
   document.getElementById('exportPdfButton').classList.toggle('hidden',!(isAdmin||isEditor));
@@ -1712,10 +1807,10 @@ function renderAnalytics(){
   PIPELINE_STAGES.forEach(s=>{stageCounts[s]=data.filter(c=>(c.pipelineStage||'novo')===s).length;});
   const realizadas=stageCounts.reuniao_realizada,taxaConv=total?Math.round(realizadas/total*100):0;
   document.getElementById('analytics-kpis').innerHTML=`
-    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">TOTAL LEADS</span><div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--c-brand-dim)"><i class="fas fa-users text-xs" style="color:var(--c-brand)"></i></div></div><p class="text-3xl font-extrabold">${total}</p></div>
-    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">R. REALIZADAS</span><div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--c-green-dim)"><i class="fas fa-handshake text-xs" style="color:var(--c-green)"></i></div></div><p class="text-3xl font-extrabold">${realizadas}</p></div>
-    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">R. AGENDADAS</span><div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--c-amber-dim)"><i class="fas fa-calendar text-xs" style="color:var(--c-amber)"></i></div></div><p class="text-3xl font-extrabold">${stageCounts.reuniao_agendada}</p></div>
-    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">CONVERSÃO</span><div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--c-purple-dim)"><i class="fas fa-chart-line text-xs" style="color:var(--c-purple)"></i></div></div><p class="text-3xl font-extrabold">${taxaConv}%</p></div>`;
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-brand-dim)"><i class="fas fa-users" style="color:var(--c-brand)"></i></div><div class="kpi-label">Total leads</div><div class="kpi-value">${total}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-green-dim)"><i class="fas fa-handshake" style="color:var(--c-green)"></i></div><div class="kpi-label">Reuniões realizadas</div><div class="kpi-value">${realizadas}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-amber-dim)"><i class="fas fa-calendar" style="color:var(--c-amber)"></i></div><div class="kpi-label">Reuniões agendadas</div><div class="kpi-value">${stageCounts.reuniao_agendada}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-purple-dim)"><i class="fas fa-chart-line" style="color:var(--c-purple)"></i></div><div class="kpi-label">Taxa de conversão</div><div class="kpi-value">${taxaConv}%</div></div>`;
   document.getElementById('funil-chart').innerHTML=PIPELINE_STAGES.map(s=>`<div><div class="flex justify-between text-xs mb-1"><span style="color:var(--c-text-2)">${PIPELINE_LABELS[s]}</span><span class="font-bold">${stageCounts[s]}</span></div><div class="progress-bar"><div class="progress-bar-fill" style="width:${total?stageCounts[s]/total*100:0}%;background:${PIPELINE_STAGE_COLORS[s]}"></div></div></div>`).join('');
   const byMonth={};data.forEach(c=>{if(c.createdAt?.toDate){const d=c.createdAt.toDate(),k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;byMonth[k]=(byMonth[k]||0)+1;}});
   const sortedMonths=Object.keys(byMonth).sort().slice(-12);
@@ -2139,13 +2234,49 @@ function renderDashboard() {
   const dashTitle = document.querySelector('#tab-dashboard-content h2');
   if (dashTitle) dashTitle.textContent = `${greeting}, ${currentUserData.nome || ''}! 👋`;
 
-  // KPIs
+  // KPIs with sparklines
+  // Build sparkline points from last 7 days
+  function _sparkPoints(filterFn, color) {
+    const days = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate()-i); days.push(d); }
+    const counts = days.map(d => {
+      const ds = d.toISOString().split('T')[0];
+      return filterFn(ds);
+    });
+    const max = Math.max(...counts, 1);
+    const pts = counts.map((c, i) => `${i*(50/6)},${28-(c/max*22)}`).join(' ');
+    return `<svg class="kpi-sparkline" width="60" height="34" viewBox="0 0 60 34"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  const sparkLeads = _sparkPoints(ds => data.filter(c => { const d=c.createdAt?.toDate?.(); return d&&d.toISOString().split('T')[0]===ds; }).length, 'var(--c-brand)');
+  const sparkReun = _sparkPoints(ds => data.filter(c => c.reuniaoData===ds&&c.reuniaoRealizada).length, 'var(--c-green)');
   const kpisEl = document.getElementById('dash-kpis');
   if (kpisEl) kpisEl.innerHTML = `
-    <div class="metric-card card-hover"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">TOTAL DE LEADS</span><div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--c-brand-dim)"><i class="fas fa-users text-sm" style="color:var(--c-brand)"></i></div></div><p class="text-3xl font-extrabold">${total}</p>${todayLeads ? `<p class="text-xs mt-1 font-semibold" style="color:var(--c-green)">+${todayLeads} hoje</p>` : '<p class="text-xs mt-1" style="color:var(--c-text-3)">este evento</p>'}</div>
-    <div class="metric-card card-hover"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">REUNIÕES AMANHÃ</span><div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--c-amber-dim)"><i class="fas fa-calendar-day text-sm" style="color:var(--c-amber)"></i></div></div><p class="text-3xl font-extrabold">${meetingsTomorrow.length}</p><p class="text-xs mt-1" style="color:var(--c-text-3)">agendadas</p></div>
-    <div class="metric-card card-hover"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">R. REALIZADAS</span><div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--c-green-dim)"><i class="fas fa-handshake text-sm" style="color:var(--c-green)"></i></div></div><p class="text-3xl font-extrabold">${realizadas}</p><p class="text-xs mt-1" style="color:var(--c-text-3)">${total ? Math.round(realizadas/total*100) : 0}% de conversão</p></div>
-    <div class="metric-card card-hover"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold" style="color:var(--c-text-3)">BRINDES ENTREGUES</span><div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--c-purple-dim)"><i class="fas fa-gift text-sm" style="color:var(--c-purple)"></i></div></div><p class="text-3xl font-extrabold">${withBrinde}</p><p class="text-xs mt-1" style="color:var(--c-text-3)">${total ? Math.round(withBrinde/total*100) : 0}% dos leads</p></div>`;
+    <div class="kpi-card" onclick="switchTab('registros')">
+      <div class="kpi-label">Total de leads</div>
+      <div class="kpi-value">${total}</div>
+      <div class="kpi-delta ${todayLeads>0?'up':'neutral'}">${todayLeads>0?'↑ +'+todayLeads+' hoje':'Sem novos hoje'}</div>
+      <div class="kpi-icon" style="background:var(--c-brand-dim)"><i class="fas fa-users" style="color:var(--c-brand)"></i></div>
+      ${sparkLeads}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Reuniões amanhã</div>
+      <div class="kpi-value">${meetingsTomorrow.length}</div>
+      <div class="kpi-delta neutral">agendadas</div>
+      <div class="kpi-icon" style="background:var(--c-amber-dim)"><i class="fas fa-calendar-day" style="color:var(--c-amber)"></i></div>
+    </div>
+    <div class="kpi-card" onclick="switchTab('analytics')">
+      <div class="kpi-label">Reuniões realizadas</div>
+      <div class="kpi-value">${realizadas}</div>
+      <div class="kpi-delta ${realizadas>0?'up':'neutral'}">${total?Math.round(realizadas/total*100):0}% de conversão</div>
+      <div class="kpi-icon" style="background:var(--c-green-dim)"><i class="fas fa-handshake" style="color:var(--c-green)"></i></div>
+      ${sparkReun}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Brindes entregues</div>
+      <div class="kpi-value">${withBrinde}</div>
+      <div class="kpi-delta ${withBrinde>0?'up':'neutral'}">${total?Math.round(withBrinde/total*100):0}% dos leads</div>
+      <div class="kpi-icon" style="background:var(--c-purple-dim)"><i class="fas fa-gift" style="color:var(--c-purple)"></i></div>
+    </div>`;
 
   // Activity feed
   const recent = [...data].sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)).slice(0, 12);
@@ -2295,13 +2426,24 @@ function renderTable(clients) {
     const ev = allEvents.find(e => e.name === c.evento);
     const evColor = ev?.color || 'var(--c-brand)';
 
+    // Generate avatar color from name
+    const _avatarColor = (name) => { const colors=['#185FA5','#854F0B','#533AB7','#0F6E56','#A32D2D','#634806','#3B6D11','#185F5F']; let h=0; for(let i=0;i<(name||'').length;i++)h=(h*31+name.charCodeAt(i))&0xffffffff; return colors[Math.abs(h)%colors.length]; };
+    const _initials = (name) => (name||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    const respColor = _avatarColor(c.responsavel);
+    const respInitials = _initials(c.responsavel);
     const respCell = isAdmin
-      ? `<select class="responsavel-select text-xs border-0 bg-transparent focus:ring-0 p-0 max-w-36 cursor-pointer font-medium" data-lead-id="${c.id}"
-           style="color:var(--c-text-2)">
-           <option value="">— não atribuído</option>
-           ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === c.responsavel ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
-         </select>`
-      : `<span class="text-sm">${c.responsavel || '—'}</span>`;
+      ? `<div style="display:flex;align-items:center;gap:7px">
+           <span class="avatar-initials" style="background:${respColor};width:26px;height:26px;font-size:9px;border-radius:7px">${c.responsavel?respInitials:'?'}</span>
+           <select class="responsavel-select" data-lead-id="${c.id}"
+             style="font-size:12px;font-weight:500;border:none;background:transparent;color:var(--c-text-2);outline:none;cursor:pointer;max-width:120px;padding:0">
+             <option value="">— não atribuído</option>
+             ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === c.responsavel ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
+           </select>
+         </div>`
+      : `<div style="display:flex;align-items:center;gap:7px">
+           <span class="avatar-initials" style="background:${respColor};width:26px;height:26px;font-size:9px;border-radius:7px">${c.responsavel?respInitials:'?'}</span>
+           <span style="font-size:12px;font-weight:500;color:var(--c-text-2)">${c.responsavel||'—'}</span>
+         </div>`;
 
     return `<tr data-id="${c.id}">
       <td>${respCell}</td>
@@ -3079,10 +3221,10 @@ function renderRegistrosStats(clients) {
   const withBrinde = clients.filter(c => c.entregouBrinde).length;
   const el = document.getElementById('registros-stats'); if (!el) return;
   el.innerHTML = `
-    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-brand-dim)"><i class="fas fa-users text-sm" style="color:var(--c-brand)"></i></div><div><p class="text-2xl font-extrabold">${total}</p><p class="text-xs" style="color:var(--c-text-3)">Total</p></div></div>
-    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-amber-dim)"><i class="fas fa-calendar text-sm" style="color:var(--c-amber)"></i></div><div><p class="text-2xl font-extrabold">${stageCount.reuniao_agendada || 0}</p><p class="text-xs" style="color:var(--c-text-3)">Agendadas</p></div></div>
-    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-green-dim)"><i class="fas fa-handshake text-sm" style="color:var(--c-green)"></i></div><div><p class="text-2xl font-extrabold">${stageCount.reuniao_realizada || 0}</p><p class="text-xs" style="color:var(--c-text-3)">Realizadas</p></div></div>
-    <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-purple-dim)"><i class="fas fa-gift text-sm" style="color:var(--c-purple)"></i></div><div><p class="text-2xl font-extrabold">${withBrinde}</p><p class="text-xs" style="color:var(--c-text-3)">Com brinde</p></div></div>`;
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-brand-dim)"><i class="fas fa-users" style="color:var(--c-brand)"></i></div><div class="kpi-label">Total</div><div class="kpi-value" style="font-size:22px">${total}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-amber-dim)"><i class="fas fa-calendar" style="color:var(--c-amber)"></i></div><div class="kpi-label">Agendadas</div><div class="kpi-value" style="font-size:22px">${stageCount.reuniao_agendada||0}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-green-dim)"><i class="fas fa-handshake" style="color:var(--c-green)"></i></div><div class="kpi-label">Realizadas</div><div class="kpi-value" style="font-size:22px">${stageCount.reuniao_realizada||0}</div></div>
+    <div class="kpi-card"><div class="kpi-icon" style="background:var(--c-purple-dim)"><i class="fas fa-gift" style="color:var(--c-purple)"></i></div><div class="kpi-label">Com brinde</div><div class="kpi-value" style="font-size:22px">${withBrinde}</div></div>`;
 }
 
 
