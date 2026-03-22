@@ -434,7 +434,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 </div>
 
 <!-- ═══════════════ APP ═══════════════ -->
-<div id="app-container" class="hidden" style="min-height:100vh;display:flex;flex-direction:column">
+<div id="app-container" class="hidden" style="min-height:100vh;flex-direction:column">
 
   <!-- Header -->
   <header class="sticky-header" style="background:var(--c-surface);border-bottom:1px solid var(--c-border);height:52px;display:flex;align-items:center;z-index:20">
@@ -1556,9 +1556,12 @@ onAuthStateChanged(auth, async user => {
     currentUserData = snap.data();
     if (currentUserData.status === 'approved') {
       currentUserRole = currentUserData.role;
-      document.getElementById('welcomeMessage').textContent = `Olá, ${currentUserData.nome}`;
+      const _wm=document.getElementById('welcomeMessage');if(_wm)_wm.textContent=`Olá, ${currentUserData.nome}`;
+      const _wma=document.getElementById('welcomeMessage-avatar');if(_wma){_wma.textContent=`${(currentUserData.nome||'?')[0]}${(currentUserData.sobrenome||'')[0]||''}`.toUpperCase();_wma.classList.remove('hidden');_wma.style.display='flex';}
       document.getElementById('auth-wrapper').classList.add('hidden');
-      document.getElementById('app-container').classList.remove('hidden');
+      const _ac = document.getElementById('app-container');
+      _ac.classList.remove('hidden');
+      _ac.style.display = 'flex';
       clientesRef = collection(db, 'clientes');
       eventosRef = collection(db, 'eventos');
       usersRef = collection(db, 'users');
@@ -1582,6 +1585,7 @@ onAuthStateChanged(auth, async user => {
     currentUserId = null;
     document.getElementById('auth-wrapper').classList.remove('hidden');
     document.getElementById('app-container').classList.add('hidden');
+    document.getElementById('app-container').style.display='none';
     [unsubClientes, unsubEventos, unsubUsers, unsubNotifs, unsubBrindes, unsubCustomFields].forEach(u => u && u());
   }
 });
