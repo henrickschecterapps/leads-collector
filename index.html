@@ -1427,32 +1427,66 @@ document.getElementById('resetPasswordForm').addEventListener('submit',async e=>
 
 document.getElementById('logoutButton').addEventListener('click',()=>signOut(auth));
 
-onAuthStateChanged(auth,async user=>{
-  if(user){
-    currentUserId=user.uid;
-    try{
-      const snap=await getDoc(doc(db,'users',user.uid));
-      if(!snap.exists()){signOut(auth);return;}
-      currentUserData=snap.data();
-      if(currentUserData.status==='approved'){
-        currentUserRole=currentUserData.role;
-        document.getElementById('welcomeMessage').textContent=`Olá, ${currentUserData.nome}`;
-        document.getElementById('auth-wrapper').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
-        clientesRef=collection(db,'clientes');eventosRef=collection(db,'eventos');usersRef=collection(db,'users');
-        notificacoesRef=collection(db,`notificacoes/${currentUserId}/items`);
-        brindesRef=collection(db,'brindes');customFieldsRef=collection(db,'customFields');
-        updateUIVisibility();setupListeners();loadEmailJSConfig();loadCustomFields();
-        if(navigator.onLine)syncOfflineQueue();
-        switchTab('dashboard');
-      }else if(currentUserData.status==='pending'){signOut(auth);showAuthError('Conta pendente de aprovação.');}
-      else{signOut(auth);showAuthError('Acesso negado.');}
-    }catch(err){console.error(err);signOut(auth);showAuthError('Erro de permissão.');}
-  }else{
-    currentUserId=null;
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUserId = user.uid;
+    // Retry up to 3x with delay — Firestore token can take a moment after auth
+    let snap = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        snap = await getDoc(doc(db, 'users', user.uid));
+        break; // success
+      } catch (err) {
+        console.warn(`getDoc attempt ${attempt + 1} failed:`, err.code, err.message);
+        if (attempt < 2) await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+        else {
+          // All retries failed — show actual error code, not generic message
+          const msg = err.code === 'permission-denied'
+            ? 'Permissão negada. Verifique as regras do Firestore (veja console para detalhes).'
+            : `Erro ao carregar perfil: ${err.code || err.message}`;
+          console.error('Final auth error:', err);
+          signOut(auth);
+          showAuthError(msg);
+          return;
+        }
+      }
+    }
+    if (!snap || !snap.exists()) {
+      // Doc doesn't exist — create a pending one for new OAuth users, or reject
+      signOut(auth);
+      showAuthError('Usuário não encontrado. Crie uma conta primeiro.');
+      return;
+    }
+    currentUserData = snap.data();
+    if (currentUserData.status === 'approved') {
+      currentUserRole = currentUserData.role;
+      document.getElementById('welcomeMessage').textContent = `Olá, ${currentUserData.nome}`;
+      document.getElementById('auth-wrapper').classList.add('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+      clientesRef = collection(db, 'clientes');
+      eventosRef = collection(db, 'eventos');
+      usersRef = collection(db, 'users');
+      notificacoesRef = collection(db, `notificacoes/${currentUserId}/items`);
+      brindesRef = collection(db, 'brindes');
+      customFieldsRef = collection(db, 'customFields');
+      updateUIVisibility();
+      setupListeners();
+      loadEmailJSConfig();
+      loadCustomFields();
+      if (navigator.onLine) syncOfflineQueue();
+      switchTab('dashboard');
+    } else if (currentUserData.status === 'pending') {
+      signOut(auth);
+      showAuthError('Conta pendente de aprovação pelo administrador.');
+    } else {
+      signOut(auth);
+      showAuthError('Acesso negado. Conta desativada.');
+    }
+  } else {
+    currentUserId = null;
     document.getElementById('auth-wrapper').classList.remove('hidden');
     document.getElementById('app-container').classList.add('hidden');
-    [unsubClientes,unsubEventos,unsubUsers,unsubNotifs,unsubBrindes,unsubCustomFields].forEach(u=>u&&u());
+    [unsubClientes, unsubEventos, unsubUsers, unsubNotifs, unsubBrindes, unsubCustomFields].forEach(u => u && u());
   }
 });
 function showAuthError(msg){const el=document.getElementById('auth-error');el.textContent=msg;el.classList.remove('hidden');document.getElementById('login-container').classList.remove('hidden');}
