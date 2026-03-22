@@ -3085,6 +3085,152 @@ function renderRegistrosStats(clients) {
     <div class="metric-card flex items-center gap-3 card-hover"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--c-purple-dim)"><i class="fas fa-gift text-sm" style="color:var(--c-purple)"></i></div><div><p class="text-2xl font-extrabold">${withBrinde}</p><p class="text-xs" style="color:var(--c-text-3)">Com brinde</p></div></div>`;
 }
 
+
+// ── Wizard navigation ─────────────────────────────────────
+function goToWizardStep(step) {
+  currentWizardStep = step;
+  [1, 2, 3].forEach(s => {
+    const el = document.getElementById(`wizard-step-${s}`);
+    if (el) el.classList.toggle('active', s === step);
+    const dot = document.getElementById(`wdot-${s}`);
+    const label = document.getElementById(`wlabel-${s}`);
+    if (dot) {
+      dot.classList.toggle('active', s === step);
+      dot.classList.toggle('done', s < step);
+    }
+    if (label) {
+      if (s === step) label.style.color = 'var(--c-brand)';
+      else if (s < step) label.style.color = 'var(--c-green)';
+      else label.style.color = 'var(--c-text-3)';
+    }
+  });
+  const l1 = document.getElementById('wline-1');
+  const l2 = document.getElementById('wline-2');
+  if (l1) l1.classList.toggle('done', step > 1);
+  if (l2) l2.classList.toggle('done', step > 2);
+  // scroll to top of form
+  document.getElementById('wizard-step-' + step)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('wizard-next-1')?.addEventListener('click', () => {
+  const name = document.getElementById('name')?.value.trim();
+  const email = document.getElementById('lead_email')?.value.trim();
+  if (!name) { showToast('Nome é obrigatório.', 'error'); return; }
+  if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
+  goToWizardStep(2);
+});
+document.getElementById('wizard-next-2')?.addEventListener('click', () => goToWizardStep(3));
+document.getElementById('wizard-back-2')?.addEventListener('click', () => goToWizardStep(1));
+document.getElementById('wizard-back-3')?.addEventListener('click', () => goToWizardStep(2));
+
+// Pipeline steps (new lead form)
+document.querySelectorAll('#pipeline-new .pipeline-step').forEach((step, i) => {
+  step.addEventListener('click', () => {
+    document.getElementById('pipelineStageVal').value = step.dataset.stage;
+    document.querySelectorAll('#pipeline-new .pipeline-step').forEach((s, j) => {
+      s.classList.remove('active', 'done');
+      if (j < i) s.classList.add('done');
+      else if (j === i) s.classList.add('active');
+    });
+  });
+});
+
+// Choice buttons (sim/não toggles)
+document.querySelectorAll('[data-field]').forEach(group => {
+  group.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const map = {
+        responsavelConta: 'responsavelContaVal', contatoDecisor: 'contatoDecisorVal',
+        conversaDemanda: 'conversaDemandaVal', pedirRO: 'pedirROVal',
+        proximoPasso: 'proximoPassoVal', entregouBrinde: 'entregouBrindeVal'
+      };
+      const hiddenId = map[group.dataset.field];
+      if (hiddenId) {
+        const h = document.getElementById(hiddenId);
+        if (h) h.value = btn.dataset.value;
+      }
+      if (group.dataset.field === 'conversaDemanda') {
+        document.getElementById('demandasContainer')?.classList.toggle('hidden', btn.dataset.value !== 'sim');
+        if (btn.dataset.value === 'sim') setTimeout(initDemandaSelector, 50);
+      }
+      if (group.dataset.field === 'proximoPasso') {
+        document.getElementById('dataHoraAgendadaContainer')?.classList.toggle('hidden', btn.dataset.value !== 'sdrAgenda');
+        document.getElementById('sdrSelectorContainer')?.classList.toggle('hidden', btn.dataset.value !== 'sdrAgenda');
+      }
+      if (group.dataset.field === 'entregouBrinde') {
+        document.getElementById('brindeSelectionContainer')?.classList.toggle('hidden', btn.dataset.value !== 'sim');
+        if (btn.dataset.value === 'sim') populateBrindeSelector();
+      }
+    });
+  });
+});
+
+// Origem buttons
+document.getElementById('origem-group')?.querySelectorAll('.choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('origem-group').querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const oc = document.getElementById('origemContato');
+    if (oc) oc.value = btn.dataset.value;
+  });
+});
+
+// Duplicate check
+let emailCheckTO, phoneCheckTO;
+document.getElementById('lead_email')?.addEventListener('input', e => {
+  const val = e.target.value.trim();
+  const icon = document.getElementById('email-validation-icon');
+  if (icon) icon.classList.add('hidden');
+  const dw = document.getElementById('duplicate-email-warning');
+  if (dw) dw.style.display = 'none';
+  clearTimeout(emailCheckTO);
+  if (!val) return;
+  if (icon) {
+    if (!isValidEmail(val)) {
+      icon.innerHTML = '<i class="fas fa-times-circle" style="color:var(--c-red)"></i>';
+    } else {
+      icon.innerHTML = '<i class="fas fa-check-circle" style="color:var(--c-green)"></i>';
+    }
+    icon.classList.remove('hidden');
+  }
+  if (!isValidEmail(val)) return;
+  emailCheckTO = setTimeout(() => {
+    const ev = document.getElementById('evento')?.value;
+    const matches = allClients.filter(c => (c.email || '').toLowerCase() === val.toLowerCase() && (!ev || c.evento === ev));
+    if (matches.length && dw) {
+      document.getElementById('duplicate-email-msg').textContent = `E-mail já cadastrado para "${matches[0].name}" no evento "${matches[0].evento}".`;
+      dw.style.display = 'block';
+    }
+  }, 600);
+});
+
+document.getElementById('phone')?.addEventListener('input', e => {
+  e.target.value = maskPhone(e.target.value);
+  const dp = document.getElementById('duplicate-phone-warning');
+  if (dp) dp.style.display = 'none';
+  clearTimeout(phoneCheckTO);
+  if (e.target.value.length < 14) return;
+  phoneCheckTO = setTimeout(() => {
+    const ev = document.getElementById('evento')?.value;
+    const matches = allClients.filter(c => (c.phone || '') === e.target.value && (!ev || c.evento === ev));
+    if (matches.length && dp) {
+      document.getElementById('duplicate-phone-msg').textContent = `Telefone já cadastrado para "${matches[0].name}" no evento "${matches[0].evento}".`;
+      dp.style.display = 'block';
+    }
+  }, 600);
+});
+
+// qa-phone mask
+document.getElementById('qa-phone')?.addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+
+// Filter sidebar close
+window.closeFilterSidebar = () => {
+  document.getElementById('filter-sidebar')?.classList.remove('open');
+  document.getElementById('filter-sidebar-overlay')?.classList.add('hidden');
+};
+
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
 </script>
