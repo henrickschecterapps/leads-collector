@@ -1113,7 +1113,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 
 <!-- ══ EDIT LEAD MODAL ══ -->
 <div id="editModal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal-box modal-box-lg"><div class="p-6"><form id="editClientForm"></form></div></div>
+  <div class="modal-box modal-box-xl" style="max-width:640px;max-height:90vh;overflow-y:auto"><div class="p-6"><form id="editClientForm"></form></div></div>
 </div>
 
 <!-- ══ EDIT USER MODAL ══ -->
@@ -2730,73 +2730,168 @@ async function populateViewModal(client) {
 function populateEditModal(client) {
   const isAdmin = currentUserRole === 'admin';
   const approvedUsers = allUsers.filter(u => u.status === 'approved').sort((a,b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`));
-  const vendedores = allUsers.filter(u => (u.role === 'vendedor' || u.role === 'admin') && u.status === 'approved');
+  const vendedores    = allUsers.filter(u => (u.role === 'vendedor' || u.role === 'admin') && u.status === 'approved');
+  const sdrs          = allUsers.filter(u => u.role === 'sdr' && u.status === 'approved');
   const stage = client.pipelineStage || 'novo';
 
+  // Section header helper
+  const sh = (icon, title) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:14px 0 10px;border-top:1px solid var(--c-border);margin-top:4px">
+       <i class="fas ${icon}" style="font-size:12px;color:var(--c-brand)"></i>
+       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c-text-3)">${title}</span>
+     </div>`;
+
   document.getElementById('editClientForm').innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <div><h3 class="text-lg font-extrabold">Editar lead</h3><p class="text-sm" style="color:var(--c-text-2)">${client.name}</p></div>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <h3 style="font-size:17px;font-weight:800">Editar lead</h3>
+        <p style="font-size:12px;color:var(--c-text-3);margin-top:2px">${client.name}</p>
+      </div>
       <button type="button" class="cancel-edit-btn btn btn-ghost btn-icon"><i class="fas fa-times text-sm"></i></button>
     </div>
-    <div class="space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div><label class="section-label">Evento</label>
-          <select id="edit_evento" class="form-input text-sm">
-            ${allEvents.map(ev => `<option value="${ev.name}"${ev.name === client.evento ? ' selected' : ''}>${ev.name}</option>`).join('')}
-          </select>
-        </div>
-        ${isAdmin ? `<div><label class="section-label">Responsável</label>
-          <select id="edit_responsavel" class="form-input text-sm">
-            <option value="">— não atribuído</option>
-            ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === client.responsavel ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
-          </select>
-        </div>` : '<div></div>'}
+
+    <!-- ── 1. Contato ── -->
+    ${sh('fa-user', 'Dados de contato')}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="sm:col-span-2">
+        <label class="section-label">Nome completo *</label>
+        <input type="text" id="edit_name" value="${client.name}" class="form-input" required>
       </div>
-      <div><label class="section-label">Nome *</label><input type="text" id="edit_name" value="${client.name}" class="form-input" required></div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div><label class="section-label">E-mail</label><input type="email" id="edit_email" value="${client.email || ''}" class="form-input"></div>
-        <div><label class="section-label">Telefone</label><input type="text" id="edit_phone" value="${client.phone || ''}" class="form-input" placeholder="(00) 00000-0000"></div>
+      <div>
+        <label class="section-label">E-mail</label>
+        <input type="email" id="edit_email" value="${client.email || ''}" class="form-input" placeholder="email@empresa.com">
       </div>
-      <div><label class="section-label">Empresa</label><input type="text" id="edit_company" value="${client.company || ''}" class="form-input"></div>
-      <div><label class="section-label">Pipeline</label>
-        <div class="flex gap-2 flex-wrap mt-1">
-          ${PIPELINE_STAGES.map(s => `<button type="button" class="pipeline-edit-btn choice-btn${s === stage ? ' selected' : ''}" data-stage="${s}">${PIPELINE_LABELS[s]}</button>`).join('')}
-        </div>
-        <input type="hidden" id="edit_pipelineStage" value="${stage}">
+      <div>
+        <label class="section-label">WhatsApp / Telefone</label>
+        <input type="text" id="edit_phone" value="${client.phone || ''}" class="form-input" placeholder="(00) 00000-0000">
       </div>
-      <div style="border-top:1px solid var(--c-border)" class="pt-4 space-y-2">
-        <p class="section-label">Reunião</p>
-        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_reuniaoAgendada" ${client.reuniaoAgendada ? 'checked' : ''} class="rounded"><span class="text-sm font-medium">Reunião Agendada</span></label>
-        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_agendarReuniao" ${client.agendarReuniao ? 'checked' : ''} class="rounded"><span class="text-sm font-medium">Para SDR agendar</span></label>
-        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_gerarRO" ${client.gerarRO ? 'checked' : ''} class="rounded"><span class="text-sm font-medium">Gerar RO</span></label>
-        <div id="edit_dataHoraContainer" class="${client.reuniaoAgendada ? '' : 'hidden'} grid grid-cols-2 gap-3 pt-1">
-          <div><label class="section-label">Data</label><input type="date" id="edit_reuniaoData" value="${client.reuniaoData || ''}" class="form-input text-sm"></div>
-          <div><label class="section-label">Hora</label><input type="time" id="edit_reuniaoHora" value="${client.reuniaoHora || ''}" class="form-input text-sm"></div>
-        </div>
-        <div id="edit_sdrContainer" class="${client.reuniaoAgendada ? '' : 'hidden'} pt-1">
-          <label class="section-label">Agendado por</label>
-          <select id="edit_sdrSelector" class="form-input text-sm">
-            <option value="">Selecionar SDR</option>
-            ${allUsers.filter(u => u.role === 'sdr' && u.status === 'approved').map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === client.reuniaoAgendadaPor ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
-          </select>
-        </div>
+      <div>
+        <label class="section-label">Empresa</label>
+        <input type="text" id="edit_company" value="${client.company || ''}" class="form-input" placeholder="Nome da empresa">
       </div>
-      <div style="border-top:1px solid var(--c-border)" class="pt-4 space-y-2">
-        <p class="section-label">Pós-Reunião</p>
-        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_reuniaoRealizada" ${client.reuniaoRealizada ? 'checked' : ''} class="rounded"><span class="text-sm font-medium">Reunião Realizada</span></label>
-        <div id="edit_realizadaPorContainer" class="${client.reuniaoRealizada ? '' : 'hidden'} pt-1">
-          <label class="section-label">Realizada por</label>
-          <select id="edit_realizadaPor" class="form-input text-sm">
-            <option value="">Selecione</option>
-            ${vendedores.map(v => `<option value="${v.nome} ${v.sobrenome}"${`${v.nome} ${v.sobrenome}` === client.realizadaPor ? ' selected' : ''}>${v.nome} ${v.sobrenome}</option>`).join('')}
-          </select>
-        </div>
+      <div>
+        <label class="section-label">Cargo</label>
+        <input type="text" id="edit_cargo" value="${client.cargo || ''}" class="form-input" placeholder="Ex: Gerente de TI">
       </div>
-      <div><label class="section-label">Observações</label><textarea id="edit_anotacoes" class="form-input" rows="3">${client.anotacoes || ''}</textarea></div>
     </div>
-    <div class="flex gap-3 justify-end mt-4 pt-4" style="border-top:1px solid var(--c-border)">
+
+    <!-- ── 2. Atribuição ── -->
+    ${sh('fa-tag', 'Atribuição & evento')}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="section-label">Evento</label>
+        <select id="edit_evento" class="form-input text-sm">
+          ${allEvents.map(ev => `<option value="${ev.name}"${ev.name === client.evento ? ' selected' : ''}>${ev.name}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="section-label">Origem</label>
+        <select id="edit_origemContato" class="form-input text-sm">
+          <option value="">— não informado</option>
+          ${Object.entries(ORIGEM_LABELS).map(([v,l]) => `<option value="${v}"${v === client.origemContato ? ' selected' : ''}>${l}</option>`).join('')}
+        </select>
+      </div>
+      ${isAdmin ? `
+      <div class="sm:col-span-2">
+        <label class="section-label">Responsável</label>
+        <select id="edit_responsavel" class="form-input text-sm">
+          <option value="">— não atribuído</option>
+          ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === client.responsavel ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
+        </select>
+      </div>` : ''}
+    </div>
+
+    <!-- ── 3. Pipeline ── -->
+    ${sh('fa-stream', 'Pipeline')}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+      ${PIPELINE_STAGES.map(s => `<button type="button" class="pipeline-edit-btn choice-btn${s === stage ? ' selected' : ''}" data-stage="${s}">${PIPELINE_LABELS[s]}</button>`).join('')}
+    </div>
+    <input type="hidden" id="edit_pipelineStage" value="${stage}">
+
+    <!-- ── 4. Qualificação ── -->
+    ${sh('fa-clipboard-check', 'Qualificação')}
+    <div class="grid grid-cols-2 gap-2">
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_responsavelConta" ${client.responsavelConta ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Responsável pela conta
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_contatoDecisor" ${client.contatoDecisor ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Contato decisor
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_conversaDemanda" ${client.conversaDemanda ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Conversou sobre demanda
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_nutricaoMKT" ${client.nutricaoMKT ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Nutrição MKT
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_pedirRO" ${client.pedirRO ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Pedir RO
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)'" onmouseout="this.style.borderColor='var(--c-border)'">
+        <input type="checkbox" id="edit_gerarRO" ${client.gerarRO ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Gerar RO
+      </label>
+    </div>
+
+    <!-- ── 5. Reunião ── -->
+    ${sh('fa-calendar-check', 'Agendamento de reunião')}
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="edit_agendarReuniao" ${client.agendarReuniao ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Para SDR agendar
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="edit_reuniaoAgendada" ${client.reuniaoAgendada ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Reunião agendada
+      </label>
+      <div id="edit_dataHoraContainer" class="${client.reuniaoAgendada ? '' : 'hidden'} grid grid-cols-2 gap-3 px-1">
+        <div><label class="section-label">Data da reunião</label><input type="date" id="edit_reuniaoData" value="${client.reuniaoData || ''}" class="form-input text-sm"></div>
+        <div><label class="section-label">Hora</label><input type="time" id="edit_reuniaoHora" value="${client.reuniaoHora || ''}" class="form-input text-sm"></div>
+        <div class="col-span-2">
+          <label class="section-label">Agendado por (SDR)</label>
+          <select id="edit_sdrSelector" class="form-input text-sm">
+            <option value="">— selecionar SDR</option>
+            ${sdrs.map(u => `<option value="${u.nome} ${u.sobrenome}"${`${u.nome} ${u.sobrenome}` === client.reuniaoAgendadaPor ? ' selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. Pós-reunião ── -->
+    ${sh('fa-handshake', 'Pós-reunião')}
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="edit_reuniaoRealizada" ${client.reuniaoRealizada ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Reunião realizada
+      </label>
+      <div id="edit_realizadaPorContainer" class="${client.reuniaoRealizada ? '' : 'hidden'} px-1">
+        <label class="section-label">Realizada por</label>
+        <select id="edit_realizadaPor" class="form-input text-sm">
+          <option value="">— selecione</option>
+          ${vendedores.map(v => `<option value="${v.nome} ${v.sobrenome}"${`${v.nome} ${v.sobrenome}` === client.realizadaPor ? ' selected' : ''}>${v.nome} ${v.sobrenome}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <!-- ── 7. Brinde ── -->
+    ${sh('fa-gift', 'Brinde')}
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--c-border);cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="edit_entregouBrinde" ${client.entregouBrinde ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0"> Brinde entregue
+      </label>
+      <div id="edit_brindeContainer" class="${client.entregouBrinde ? '' : 'hidden'} px-1">
+        <label class="section-label">Brinde entregue</label>
+        <select id="edit_brindeId" class="form-input text-sm">
+          <option value="">— selecionar brinde</option>
+          ${allBrindes.filter(b => !b.evento || b.evento === client.evento).map(b => `<option value="${b.id}" data-nome="${b.nome}"${b.id === client.brindeId ? ' selected' : ''}>${b.nome} (${b.quantidade - (b.entregues||0)} restantes)</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <!-- ── 8. Observações ── -->
+    ${sh('fa-comment-alt', 'Observações')}
+    <textarea id="edit_anotacoes" class="form-input" rows="4" placeholder="Anotações sobre o lead, contexto da conversa...">${client.anotacoes || ''}</textarea>
+
+    <!-- Footer -->
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--c-border)">
       <button type="button" class="cancel-edit-btn btn btn-secondary">Cancelar</button>
-      <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Salvar</button>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Salvar alterações</button>
     </div>`;
 
   // Pipeline btn handlers
@@ -2809,19 +2904,22 @@ function populateEditModal(client) {
   });
 
   // Checkbox show/hide
-  const agdCb = document.getElementById('edit_reuniaoAgendada');
-  const agCb  = document.getElementById('edit_agendarReuniao');
+  const agdCb  = document.getElementById('edit_reuniaoAgendada');
+  const agCb   = document.getElementById('edit_agendarReuniao');
   const realCb = document.getElementById('edit_reuniaoRealizada');
+  const brdCb  = document.getElementById('edit_entregouBrinde');
+
   const updVis = () => {
     document.getElementById('edit_dataHoraContainer').classList.toggle('hidden', !agdCb.checked);
-    document.getElementById('edit_sdrContainer').classList.toggle('hidden', !agdCb.checked);
     document.getElementById('edit_realizadaPorContainer').classList.toggle('hidden', !realCb.checked);
+    document.getElementById('edit_brindeContainer').classList.toggle('hidden', !brdCb.checked);
   };
   agdCb.addEventListener('change', () => { if (agdCb.checked) agCb.checked = false; updVis(); });
   agCb.addEventListener('change',  () => { if (agCb.checked) agdCb.checked = false; updVis(); });
   realCb.addEventListener('change', updVis);
+  brdCb.addEventListener('change', updVis);
 
-  document.getElementById('edit_phone').addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+  document.getElementById('edit_phone').addEventListener('input', e => { e.target.value = maskPhone(e.target.value); });
   document.querySelectorAll('.cancel-edit-btn').forEach(b => b.addEventListener('click', () => document.getElementById('editModal').classList.add('hidden')));
 }
 
@@ -2836,22 +2934,39 @@ document.getElementById('editClientForm').addEventListener('submit', async e => 
     const realizadaChecked = document.getElementById('edit_reuniaoRealizada').checked;
     const newRealizadaBy = realizadaChecked ? document.getElementById('edit_realizadaPor').value : null;
     const agdChecked = document.getElementById('edit_reuniaoAgendada').checked;
+    // Brinde
+    const brindeChecked = document.getElementById('edit_entregouBrinde').checked;
+    const brindeSelect  = document.getElementById('edit_brindeId');
+    const brindeId   = brindeChecked ? brindeSelect?.value || null : null;
+    const brindeOpt  = brindeSelect?.options[brindeSelect?.selectedIndex];
+    const brindeNome = brindeChecked && brindeId ? (brindeOpt?.dataset.nome || '') : null;
+
     const data = {
-      evento: document.getElementById('edit_evento').value,
-      name: document.getElementById('edit_name').value.trim(),
-      email: document.getElementById('edit_email').value.trim(),
-      phone: document.getElementById('edit_phone').value.trim(),
-      company: document.getElementById('edit_company').value.trim(),
-      anotacoes: document.getElementById('edit_anotacoes').value.trim(),
-      agendarReuniao: document.getElementById('edit_agendarReuniao').checked,
-      reuniaoAgendada: agdChecked,
-      gerarRO: document.getElementById('edit_gerarRO').checked,
-      reuniaoRealizada: realizadaChecked,
-      realizadaPor: newRealizadaBy,
-      pipelineStage: newStage,
-      reuniaoData: agdChecked ? document.getElementById('edit_reuniaoData').value : null,
-      reuniaoHora: agdChecked ? document.getElementById('edit_reuniaoHora').value : null,
-      reuniaoAgendadaPor: agdChecked ? document.getElementById('edit_sdrSelector').value : null,
+      evento:            document.getElementById('edit_evento').value,
+      name:              document.getElementById('edit_name').value.trim(),
+      email:             document.getElementById('edit_email').value.trim(),
+      phone:             document.getElementById('edit_phone').value.trim(),
+      company:           document.getElementById('edit_company').value.trim(),
+      cargo:             document.getElementById('edit_cargo').value.trim(),
+      origemContato:     document.getElementById('edit_origemContato').value,
+      anotacoes:         document.getElementById('edit_anotacoes').value.trim(),
+      agendarReuniao:    document.getElementById('edit_agendarReuniao').checked,
+      reuniaoAgendada:   agdChecked,
+      gerarRO:           document.getElementById('edit_gerarRO').checked,
+      reuniaoRealizada:  realizadaChecked,
+      realizadaPor:      newRealizadaBy,
+      pipelineStage:     newStage,
+      reuniaoData:       agdChecked ? document.getElementById('edit_reuniaoData').value : null,
+      reuniaoHora:       agdChecked ? document.getElementById('edit_reuniaoHora').value : null,
+      reuniaoAgendadaPor:agdChecked ? document.getElementById('edit_sdrSelector').value : null,
+      responsavelConta:  document.getElementById('edit_responsavelConta').checked,
+      contatoDecisor:    document.getElementById('edit_contatoDecisor').checked,
+      conversaDemanda:   document.getElementById('edit_conversaDemanda').checked,
+      nutricaoMKT:       document.getElementById('edit_nutricaoMKT').checked,
+      pedirRO:           document.getElementById('edit_pedirRO').checked,
+      entregouBrinde:    brindeChecked,
+      brindeId,
+      brindeNome,
     };
     if (currentUserRole === 'admin' && document.getElementById('edit_responsavel')) {
       data.responsavel = document.getElementById('edit_responsavel').value;
