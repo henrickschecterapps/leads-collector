@@ -869,21 +869,202 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 
     <!-- ══ TAB: HUB DE EVENTOS ══ -->
     <div id="tab-hub-content" class="hidden fade-up">
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h2 class="text-2xl font-extrabold">Hub de Eventos</h2>
-          <p class="text-sm mt-0.5" style="color:var(--c-text-2)">Informações, documentos e links por evento</p>
+
+      <!-- ── LIST VIEW: all events ── -->
+      <div id="hub-list-view">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-2xl font-extrabold">Hub de Eventos</h2>
+            <p class="text-sm mt-0.5" style="color:var(--c-text-2)">Informações, documentos e materiais por evento</p>
+          </div>
+        </div>
+        <div id="hub-event-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="hub-event-empty" class="card text-center py-16 hidden">
+          <i class="fas fa-calendar-times text-5xl mb-4 block" style="color:var(--c-border)"></i>
+          <p class="font-bold mb-1">Nenhum evento cadastrado</p>
+          <p class="text-sm" style="color:var(--c-text-3)">Crie eventos na aba Admin para visualizá-los aqui.</p>
         </div>
       </div>
 
-      <!-- Event selector -->
-      <div class="card mb-4 p-0 overflow-hidden">
-        <div id="hub-event-list" class="divide-y" style="border-color:var(--c-border)"></div>
-        <div id="hub-event-empty" class="p-8 text-center text-sm" style="color:var(--c-text-3);display:none">
-          <i class="fas fa-calendar-times text-3xl mb-3 block opacity-20"></i>
-          Nenhum evento cadastrado.
+      <!-- ── DETAIL VIEW: single event page ── -->
+      <div id="hub-detail-view" style="display:none">
+
+        <!-- Back + Header -->
+        <div class="mb-6">
+          <button onclick="showHubList()" class="btn btn-ghost text-sm mb-4 -ml-2" style="color:var(--c-text-2)">
+            <i class="fas fa-arrow-left text-xs"></i> Todos os eventos
+          </button>
+          <div id="hub-detail-hero" class="rounded-2xl overflow-hidden relative" style="min-height:140px"></div>
         </div>
-      </div>
+
+        <!-- Stats strip -->
+        <div id="hub-detail-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 stagger-children"></div>
+
+        <!-- Main content grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          <!-- Left col: Info + Checklist -->
+          <div class="lg:col-span-2 space-y-5">
+
+            <!-- Info card (view) -->
+            <div class="card" id="hub-info-view-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                  <i class="fas fa-info-circle" style="color:var(--c-brand)"></i>Sobre o evento
+                </h3>
+                <button id="hub-edit-btn" class="btn btn-secondary text-xs py-1.5 px-3 hub-admin-only" onclick="toggleHubEditMode(true)">
+                  <i class="fas fa-pen"></i>Editar
+                </button>
+              </div>
+              <div id="hub-info-display" class="space-y-3"></div>
+            </div>
+
+            <!-- Info card (edit) — admin only -->
+            <div class="card hub-admin-only" id="hub-info-edit-card" style="display:none">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                  <i class="fas fa-pen" style="color:var(--c-brand)"></i>Editar informações
+                </h3>
+                <button class="btn btn-ghost btn-icon" onclick="toggleHubEditMode(false)"><i class="fas fa-times text-sm"></i></button>
+              </div>
+              <div class="space-y-4">
+                <div><label class="section-label">Descrição</label><textarea id="hub-desc" class="form-input" rows="3" placeholder="Descreva o evento, objetivos..."></textarea></div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div><label class="section-label">Local</label><input type="text" id="hub-local" class="form-input text-sm" placeholder="Centro de Convenções, SP"></div>
+                  <div><label class="section-label">Responsável</label><input type="text" id="hub-resp" class="form-input text-sm" placeholder="Nome do responsável"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div><label class="section-label">Início</label><input type="date" id="hub-start" class="form-input text-sm"></div>
+                  <div><label class="section-label">Fim</label><input type="date" id="hub-end" class="form-input text-sm"></div>
+                </div>
+                <div><label class="section-label">Público-alvo</label><textarea id="hub-perfil" class="form-input" rows="2" placeholder="CTOs, Gerentes de TI..."></textarea></div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div><label class="section-label">Meta de leads</label><input type="number" id="hub-meta" class="form-input text-sm" placeholder="200" min="0"></div>
+                  <div><label class="section-label">Orçamento</label><input type="text" id="hub-budget" class="form-input text-sm" placeholder="R$ 50.000"></div>
+                  <div><label class="section-label">Estande</label><input type="text" id="hub-stand" class="form-input text-sm" placeholder="Hall B, Box 24"></div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn-primary text-sm" onclick="saveHubInfo()"><i class="fas fa-save"></i>Salvar</button>
+                  <button class="btn btn-secondary text-sm" onclick="toggleHubEditMode(false)">Cancelar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Documentos -->
+            <div class="card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                  <i class="fas fa-folder-open" style="color:var(--c-amber)"></i>Documentos
+                  <span id="hub-doc-count" class="badge badge-gray text-xs"></span>
+                </h3>
+              </div>
+              <div id="hub-doc-add-row" class="hidden mb-4 p-3 rounded-xl space-y-2" style="background:var(--c-bg)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" id="hub-doc-name" class="form-input text-sm" placeholder="Nome do documento">
+                  <select id="hub-doc-type" class="form-input text-sm">
+                    <option value="apresentacao">📊 Apresentação</option>
+                    <option value="proposta">📄 Proposta</option>
+                    <option value="contrato">📋 Contrato</option>
+                    <option value="roteiro">🗒️ Roteiro</option>
+                    <option value="planilha">📈 Planilha</option>
+                    <option value="outro">📁 Outro</option>
+                  </select>
+                </div>
+                <div class="flex gap-2">
+                  <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Drive, SharePoint, Dropbox...)">
+                  <button class="btn btn-primary text-sm" onclick="addHubDoc()"><i class="fas fa-plus"></i>Adicionar</button>
+                </div>
+              </div>
+              <div id="hub-doc-list" class="space-y-2"></div>
+              <div id="hub-doc-empty" class="text-center py-6 hidden">
+                <i class="fas fa-file text-3xl mb-2 block opacity-20"></i>
+                <p class="text-sm" style="color:var(--c-text-3)">Nenhum documento adicionado.</p>
+              </div>
+              <button id="hub-doc-add-btn" class="btn btn-secondary text-xs w-full justify-center mt-3 hub-admin-only" onclick="toggleHubDocAdd()">
+                <i class="fas fa-plus"></i>Adicionar documento
+              </button>
+            </div>
+
+            <!-- Notas -->
+            <div class="card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                  <i class="fas fa-sticky-note" style="color:var(--c-purple)"></i>Notas da equipe
+                </h3>
+                <button class="btn btn-secondary text-xs py-1.5 px-3 hub-admin-only" onclick="toggleHubNotasEdit()">
+                  <i class="fas fa-pen"></i>Editar
+                </button>
+              </div>
+              <div id="hub-notas-display" class="text-sm leading-relaxed whitespace-pre-wrap" style="color:var(--c-text-2)"></div>
+              <div id="hub-notas-edit" class="hidden space-y-3">
+                <textarea id="hub-notas" class="form-input" rows="6" placeholder="Briefing, instruções para a equipe, dress code, logística..."></textarea>
+                <div class="flex gap-2">
+                  <button class="btn btn-primary text-sm" onclick="saveHubNotas()"><i class="fas fa-save"></i>Salvar</button>
+                  <button class="btn btn-secondary text-sm" onclick="toggleHubNotasEdit()">Cancelar</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- end left col -->
+
+          <!-- Right col: Links + QR + Checklist -->
+          <div class="space-y-5">
+
+            <!-- Links rápidos -->
+            <div class="card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                  <i class="fas fa-link" style="color:var(--c-green)"></i>Links rápidos
+                  <span id="hub-link-count" class="badge badge-gray text-xs"></span>
+                </h3>
+              </div>
+              <div id="hub-link-add-row" class="hidden mb-3 space-y-2 p-3 rounded-xl" style="background:var(--c-bg)">
+                <input type="text" id="hub-link-label" class="form-input text-sm" placeholder="Nome do link">
+                <div class="flex gap-2">
+                  <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
+                  <button class="btn btn-primary text-sm px-3" onclick="addHubLink()"><i class="fas fa-plus"></i></button>
+                </div>
+              </div>
+              <div id="hub-link-list" class="space-y-2"></div>
+              <div id="hub-link-empty" class="text-center py-5 hidden">
+                <p class="text-sm" style="color:var(--c-text-3)">Nenhum link adicionado.</p>
+              </div>
+              <button class="btn btn-secondary text-xs w-full justify-center mt-3 hub-admin-only" onclick="toggleHubLinkAdd()">
+                <i class="fas fa-plus"></i>Adicionar link
+              </button>
+            </div>
+
+            <!-- QR Code -->
+            <div class="card">
+              <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <i class="fas fa-qrcode" style="color:var(--c-brand)"></i>Cadastro via QR Code
+              </h3>
+              <p class="text-xs mb-3" style="color:var(--c-text-2)">Visitantes escaneiam e preenchem os dados sem precisar de login.</p>
+              <div id="hub-qr-display" class="flex justify-center mb-3 rounded-xl p-3" style="background:var(--c-bg)"></div>
+              <div class="flex gap-2">
+                <button class="btn btn-secondary text-xs flex-1 justify-center" onclick="copyHubQrUrl()"><i class="fas fa-copy"></i>Copiar link</button>
+                <button class="btn btn-secondary text-xs flex-1 justify-center" id="hub-qr-dl-btn"><i class="fas fa-download"></i>Baixar</button>
+              </div>
+              <input type="hidden" id="hub-qr-url">
+            </div>
+
+            <!-- Checklist -->
+            <div class="card">
+              <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <i class="fas fa-check-square" style="color:var(--c-green)"></i>Checklist pré-evento
+                <span id="hub-check-progress" class="badge badge-gray text-xs ml-auto"></span>
+              </h3>
+              <div id="hub-checklist" class="space-y-1 mb-3"></div>
+              <div class="flex gap-2 hub-admin-only" id="hub-check-add-row">
+                <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item..."
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
+                <button class="btn btn-secondary text-sm px-3" onclick="addHubCheckItem()"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+
+          </div><!-- end right col -->
+        </div><!-- end main grid -->
+      </div><!-- end detail view -->
     </div>
 
         <!-- ══ TAB: ANALYTICS ══ -->
@@ -1498,6 +1679,7 @@ function switchTab(target){
   if(target==='analytics')renderAnalytics();
   if(target==='agenda')renderAgenda();
   if(target==='hub')renderHubTab();
+  if(target==='usuarios')renderUserTable();
 }
 window.switchTab=switchTab;
 
@@ -1663,7 +1845,14 @@ function setupListeners(){
   unsubUsers=onSnapshot(query(usersRef),snap=>{
     allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));
     populateSdrDropdown(document.getElementById('sdrSelector'));populateResponsavelFilter();
-    if(currentUserRole==='admin')renderUserTable();
+    // Always render if admin, regardless of which tab is active
+    if(currentUserRole==='admin'){
+      renderUserTable();
+      // Update pending badge in nav
+      const pendingCount = allUsers.filter(u=>u.status==='pending').length;
+      const badge = document.getElementById('pending-count');
+      if(badge) badge.textContent = pendingCount || '';
+    }
   });
   if(unsubNotifs)unsubNotifs();
   unsubNotifs=onSnapshot(query(notificacoesRef,orderBy('createdAt','desc')),snap=>{
@@ -3419,83 +3608,202 @@ window.closeFilterSidebar = () => {
 };
 
 
-// ── Event Hub ─────────────────────────────────────────────
+// ── Event Hub (page-based, no modal) ──────────────────────
 let currentHubEventId = null;
-let hubData = {}; // local cache of hub data per event
+let hubData = {};
 
-window.closeEventHub = () => document.getElementById('eventHubModal').classList.add('hidden');
-
-window.switchHubTab = (tab) => {
-  document.querySelectorAll('.hub-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.htab === tab));
-  document.querySelectorAll('.hub-tab-content').forEach(c => c.classList.toggle('hidden', c.id !== `hub-tab-${tab}`));
+// Show list of events
+window.showHubList = () => {
+  document.getElementById('hub-list-view').style.display = '';
+  document.getElementById('hub-detail-view').style.display = 'none';
+  currentHubEventId = null;
 };
 
-// Open hub for an event
+// Admin-only UI toggles
+window.toggleHubEditMode = (editing) => {
+  document.getElementById('hub-info-view-card').style.display = editing ? 'none' : '';
+  document.getElementById('hub-info-edit-card').style.display = editing ? '' : 'none';
+};
+window.toggleHubDocAdd = () => {
+  const el = document.getElementById('hub-doc-add-row');
+  el.classList.toggle('hidden');
+  if (!el.classList.contains('hidden')) document.getElementById('hub-doc-name').focus();
+};
+window.toggleHubLinkAdd = () => {
+  const el = document.getElementById('hub-link-add-row');
+  el.classList.toggle('hidden');
+  if (!el.classList.contains('hidden')) document.getElementById('hub-link-label').focus();
+};
+window.toggleHubNotasEdit = () => {
+  const view = document.getElementById('hub-notas-display');
+  const edit = document.getElementById('hub-notas-edit');
+  const isEditing = !edit.classList.contains('hidden');
+  view.classList.toggle('hidden', !isEditing);
+  edit.classList.toggle('hidden', isEditing);
+};
+
+// Navigate to event detail
 window.openEventHub = async (eventId, eventName) => {
   currentHubEventId = eventId;
-  document.getElementById('hub-event-name').textContent = eventName;
-  switchHubTab('info');
-  document.getElementById('eventHubModal').classList.remove('hidden');
+  document.getElementById('hub-list-view').style.display = 'none';
+  document.getElementById('hub-detail-view').style.display = '';
+  toggleHubEditMode(false);
 
-  // Show/hide admin-only elements based on role
+  // Show/hide admin controls
   const isHubAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
   document.querySelectorAll('.hub-admin-only').forEach(el => { el.style.display = isHubAdmin ? '' : 'none'; });
-  document.querySelectorAll('.hub-add-row').forEach(el => { el.style.display = isHubAdmin ? '' : 'none'; });
-  ['hub-desc','hub-local','hub-start','hub-end','hub-resp','hub-perfil','hub-meta','hub-budget','hub-stand','hub-notas'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.readOnly = !isHubAdmin;
-  });
 
-  // Set QR URL
-  const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
-  const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
-  const qrInput = document.getElementById('hub-qr-url');
-  if (qrInput) qrInput.value = qrUrl;
-
-  // QR generate button
-  document.getElementById('hub-qr-gen-btn').onclick = () => {
-    const display = document.getElementById('hub-qr-display');
-    display.innerHTML = '';
-    display.style.display = 'flex';
-    new QRCode(display, { text: qrUrl, width: 160, height: 160, colorDark: '#0070c0', colorLight: '#ffffff' });
-  };
-
-  // Load saved hub data from Firestore
+  // Load event data
   try {
     const snap = await getDoc(doc(eventosRef, eventId));
-    if (snap.exists()) {
-      const ev = snap.data();
-      const hub = ev.hub || {};
-      hubData = hub;
+    if (!snap.exists()) return;
+    const ev = snap.data();
+    hubData = ev.hub || {};
 
-      // Populate info tab
-      document.getElementById('hub-desc').value = hub.desc || ev.description || '';
-      document.getElementById('hub-local').value = hub.local || '';
+    // ── Hero ──
+    const today = new Date(); today.setHours(0,0,0,0);
+    const parse = s => s ? new Date(s + 'T00:00:00') : null;
+    const start = parse(ev.startDate), end = parse(ev.endDate);
+    const isActive = start && end && start <= today && today <= end;
+    const isPast = end && end < today;
+    const statusLabel = isActive ? '🟢 Em andamento' : isPast ? '⚫ Encerrado' : '🟡 Em breve';
+    const heroBg = ev.color || '#0070c0';
+    const heroEl = document.getElementById('hub-detail-hero');
+    heroEl.style.cssText = `background:linear-gradient(135deg,${heroBg}dd,${heroBg}88);padding:28px 28px 24px;position:relative`;
+    heroEl.innerHTML = `
+      <div style="position:absolute;inset:0;opacity:.07;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:24px 24px;border-radius:16px"></div>
+      <div style="position:relative">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.65);margin-bottom:6px">${statusLabel}</div>
+        <h2 style="font-size:24px;font-weight:900;color:#fff;margin-bottom:8px;line-height:1.2">${eventName}</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:rgba(255,255,255,.75)">
+          ${ev.startDate ? `<span>📅 ${new Date(ev.startDate+'T00:00:00').toLocaleDateString('pt-BR')} — ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
+          ${(hubData.local) ? `<span>📍 ${hubData.local}</span>` : ''}
+          ${(hubData.resp) ? `<span>👤 ${hubData.resp}</span>` : ''}
+          ${(hubData.stand) ? `<span>🏢 ${hubData.stand}</span>` : ''}
+        </div>
+      </div>`;
+
+    // ── Stats ──
+    const leadCount = allClients.filter(c => c.evento === eventName).length;
+    const realizadas = allClients.filter(c => c.evento === eventName && c.pipelineStage === 'reuniao_realizada').length;
+    const meta = ev.meta || 0;
+    const pct = meta > 0 ? Math.round(leadCount / meta * 100) : null;
+    const docCount = (hubData.docs || []).length;
+    const linkCount = (hubData.links || []).length;
+    document.getElementById('hub-detail-stats').innerHTML = `
+      <div class="kpi-card" style="cursor:default">
+        <div class="kpi-icon" style="background:var(--c-brand-dim)"><i class="fas fa-users" style="color:var(--c-brand)"></i></div>
+        <div class="kpi-label">Leads captados</div>
+        <div class="kpi-value" style="font-size:22px">${leadCount}${meta ? `<span style="font-size:13px;font-weight:500;color:var(--c-text-3)">/${meta}</span>` : ''}</div>
+        ${pct !== null ? `<div class="kpi-delta ${pct>=100?'up':'neutral'}">${pct}% da meta</div>` : ''}
+      </div>
+      <div class="kpi-card" style="cursor:default">
+        <div class="kpi-icon" style="background:var(--c-green-dim)"><i class="fas fa-handshake" style="color:var(--c-green)"></i></div>
+        <div class="kpi-label">Reuniões realizadas</div>
+        <div class="kpi-value" style="font-size:22px">${realizadas}</div>
+        <div class="kpi-delta neutral">${leadCount ? Math.round(realizadas/leadCount*100) : 0}% de conversão</div>
+      </div>
+      <div class="kpi-card" style="cursor:default">
+        <div class="kpi-icon" style="background:var(--c-amber-dim)"><i class="fas fa-folder-open" style="color:var(--c-amber)"></i></div>
+        <div class="kpi-label">Documentos</div>
+        <div class="kpi-value" style="font-size:22px">${docCount}</div>
+      </div>
+      <div class="kpi-card" style="cursor:default">
+        <div class="kpi-icon" style="background:var(--c-purple-dim)"><i class="fas fa-link" style="color:var(--c-purple)"></i></div>
+        <div class="kpi-label">Links rápidos</div>
+        <div class="kpi-value" style="font-size:22px">${linkCount}</div>
+      </div>`;
+
+    // ── Info display ──
+    const infoFields = [
+      { icon: '📝', label: 'Descrição', val: hubData.desc },
+      { icon: '🎯', label: 'Público-alvo', val: hubData.perfil },
+      { icon: '💰', label: 'Orçamento', val: hubData.budget },
+    ].filter(f => f.val);
+    const infoDisplay = document.getElementById('hub-info-display');
+    if (infoFields.length) {
+      infoDisplay.innerHTML = infoFields.map(f => `
+        <div style="padding:10px 0;border-bottom:1px solid var(--c-border)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-text-3);margin-bottom:4px">${f.icon} ${f.label}</div>
+          <div style="font-size:13px;color:var(--c-text-2);line-height:1.6;white-space:pre-wrap">${f.val}</div>
+        </div>`).join('');
+    } else {
+      infoDisplay.innerHTML = `<p style="font-size:13px;color:var(--c-text-3);text-align:center;padding:16px 0">
+        ${isHubAdmin ? 'Clique em <strong>Editar</strong> para adicionar informações sobre este evento.' : 'Nenhuma informação adicionada ainda.'}
+      </p>`;
+    }
+
+    // ── Populate edit fields ──
+    if (isHubAdmin) {
+      document.getElementById('hub-desc').value = hubData.desc || '';
+      document.getElementById('hub-local').value = hubData.local || '';
       document.getElementById('hub-start').value = ev.startDate || '';
       document.getElementById('hub-end').value = ev.endDate || '';
-      document.getElementById('hub-resp').value = hub.resp || '';
-      document.getElementById('hub-perfil').value = hub.perfil || '';
-      document.getElementById('hub-meta').value = ev.meta || '';
-      document.getElementById('hub-budget').value = hub.budget || '';
-      document.getElementById('hub-stand').value = hub.stand || '';
-
-      // Populate notas tab
-      document.getElementById('hub-notas').value = hub.notas || '';
-      renderHubChecklist(hub.checklist || []);
-
-      // Populate docs tab
-      renderHubDocs(hub.docs || []);
-
-      // Populate links tab
-      renderHubLinks(hub.links || []);
+      document.getElementById('hub-resp').value = hubData.resp || '';
+      document.getElementById('hub-perfil').value = hubData.perfil || '';
+      document.getElementById('hub-meta').value = meta || '';
+      document.getElementById('hub-budget').value = hubData.budget || '';
+      document.getElementById('hub-stand').value = hubData.stand || '';
     }
+
+    // ── Notas ──
+    const notasDisplay = document.getElementById('hub-notas-display');
+    if (hubData.notas) {
+      notasDisplay.textContent = hubData.notas;
+      notasDisplay.style.color = 'var(--c-text-2)';
+    } else {
+      notasDisplay.innerHTML = `<span style="color:var(--c-text-3);font-size:13px">${isHubAdmin ? 'Clique em Editar para adicionar notas para a equipe.' : 'Nenhuma nota adicionada.'}</span>`;
+    }
+    if (isHubAdmin) document.getElementById('hub-notas').value = hubData.notas || '';
+
+    // ── Docs, Links, Checklist ──
+    renderHubDocs(hubData.docs || []);
+    renderHubLinks(hubData.links || []);
+    renderHubChecklist(hubData.checklist || []);
+
+    // ── QR Code ──
+    const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
+    const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
+    document.getElementById('hub-qr-url').value = qrUrl;
+    const qrDisplay = document.getElementById('hub-qr-display');
+    qrDisplay.innerHTML = '';
+    new QRCode(qrDisplay, { text: qrUrl, width: 140, height: 140, colorDark: ev.color || '#0070c0', colorLight: '#ffffff' });
+    document.getElementById('hub-qr-dl-btn').onclick = () => {
+      const canvas = qrDisplay.querySelector('canvas');
+      if (!canvas) return;
+      const a = document.createElement('a'); a.download = `qr-${eventName}.png`; a.href = canvas.toDataURL(); a.click();
+    };
+
   } catch(err) { console.error('Hub load error:', err); }
 };
 
-// Wire hub button clicks in admin tab
+// Wire hub button in admin
 document.getElementById('tab-admin-content').addEventListener('click', e => {
   const hubBtn = e.target.closest('.hub-btn');
   if (hubBtn) {
+    switchTab('hub');
     openEventHub(hubBtn.dataset.eventId, hubBtn.dataset.eventName);
+  }
+  const qrBtn = e.target.closest('.qr-btn');
+  if (qrBtn) {
+    const eventName = qrBtn.dataset.event;
+    const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
+    const qrUrl = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(eventName)}`;
+    document.getElementById('qr-event-name').textContent = eventName;
+    const display = document.getElementById('qr-display'); display.innerHTML = '';
+    new QRCode(display, { text: qrUrl, width: 200, height: 200, colorDark: '#0070c0', colorLight: '#ffffff' });
+    document.getElementById('qrModal').classList.remove('hidden');
+    document.getElementById('qr-copy-btn').onclick = () => { navigator.clipboard.writeText(qrUrl); showToast('Link copiado!'); };
+    document.getElementById('qr-download-btn').onclick = () => {
+      const canvas = display.querySelector('canvas');
+      if (!canvas) return;
+      const a = document.createElement('a'); a.download = `qr-${eventName}.png`; a.href = canvas.toDataURL(); a.click();
+    };
+  }
+  const delBtn = e.target.closest('.delete-btn');
+  if (delBtn) {
+    itemToDelete = { id: delBtn.dataset.id, type: delBtn.dataset.type };
+    document.getElementById('deleteModal').classList.remove('hidden');
   }
 });
 
@@ -3503,18 +3811,21 @@ document.getElementById('tab-admin-content').addEventListener('click', e => {
 window.saveHubInfo = async () => {
   if (!currentHubEventId) return;
   try {
-    const hub = hubData || {};
-    hub.desc = document.getElementById('hub-desc').value.trim();
-    hub.local = document.getElementById('hub-local').value.trim();
-    hub.resp = document.getElementById('hub-resp').value.trim();
-    hub.perfil = document.getElementById('hub-perfil').value.trim();
-    hub.budget = document.getElementById('hub-budget').value.trim();
-    hub.stand = document.getElementById('hub-stand').value.trim();
+    hubData.desc = document.getElementById('hub-desc').value.trim();
+    hubData.local = document.getElementById('hub-local').value.trim();
+    hubData.resp = document.getElementById('hub-resp').value.trim();
+    hubData.perfil = document.getElementById('hub-perfil').value.trim();
+    hubData.budget = document.getElementById('hub-budget').value.trim();
+    hubData.stand = document.getElementById('hub-stand').value.trim();
     const meta = parseInt(document.getElementById('hub-meta').value) || 0;
     const startDate = document.getElementById('hub-start').value;
     const endDate = document.getElementById('hub-end').value;
-    await updateDoc(doc(eventosRef, currentHubEventId), { hub, meta, startDate, endDate });
+    await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData, meta, startDate, endDate });
     showToast('Informações salvas!');
+    toggleHubEditMode(false);
+    // Refresh detail
+    const ev = allEvents.find(e => e.id === currentHubEventId);
+    if (ev) openEventHub(currentHubEventId, ev.name);
   } catch(err) { showToast('Erro ao salvar.', 'error'); console.error(err); }
 };
 
@@ -3525,14 +3836,23 @@ window.saveHubNotas = async () => {
     hubData.notas = document.getElementById('hub-notas').value.trim();
     await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData });
     showToast('Notas salvas!');
+    toggleHubNotasEdit();
+    const notasDisplay = document.getElementById('hub-notas-display');
+    notasDisplay.textContent = hubData.notas || '';
+    notasDisplay.classList.remove('hidden');
   } catch(err) { showToast('Erro ao salvar.', 'error'); }
+};
+
+// ── QR copy ──
+window.copyHubQrUrl = () => {
+  const val = document.getElementById('hub-qr-url').value;
+  if (val) { navigator.clipboard.writeText(val); showToast('Link copiado!'); }
 };
 
 // ── Checklist ──
 window.addHubCheckItem = async () => {
   const inp = document.getElementById('hub-check-input');
-  const text = inp.value.trim();
-  if (!text) return;
+  const text = inp.value.trim(); if (!text) return;
   if (!hubData.checklist) hubData.checklist = [];
   hubData.checklist.push({ text, done: false, id: Date.now() });
   inp.value = '';
@@ -3542,24 +3862,28 @@ window.addHubCheckItem = async () => {
 
 function renderHubChecklist(items) {
   const list = document.getElementById('hub-checklist');
-  if (!items || !items.length) { list.innerHTML = ''; return; }
+  const prog = document.getElementById('hub-check-progress');
+  if (!list) return;
+  if (!items || !items.length) { list.innerHTML = ''; if(prog) prog.textContent=''; return; }
+  const done = items.filter(i => i.done).length;
+  if (prog) prog.textContent = `${done}/${items.length}`;
   list.innerHTML = items.map((item, i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--c-border)">
-      <div onclick="toggleHubCheck(${i})" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--c-border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${item.done?'var(--c-green)':'transparent'};border-color:${item.done?'var(--c-green)':'var(--c-border)'}">
+      <div onclick="toggleHubCheck(${i})" style="width:18px;height:18px;border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;${item.done ? 'background:var(--c-green);border:2px solid var(--c-green)' : 'border:2px solid var(--c-border)'}">
         ${item.done ? '<i class="fas fa-check" style="color:white;font-size:9px"></i>' : ''}
       </div>
-      <span style="flex:1;font-size:13px;text-decoration:${item.done?'line-through':'none'};color:${item.done?'var(--c-text-3)':'var(--c-text)'}">${item.text}</span>
-      <button onclick="removeHubCheck(${i})" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--c-text-3);font-size:11px"><i class="fas fa-times"></i></button>
+      <span style="flex:1;font-size:13px;${item.done ? 'text-decoration:line-through;color:var(--c-text-3)' : 'color:var(--c-text)'}">${item.text}</span>
+      <button onclick="removeHubCheck(${i})" style="border:none;background:transparent;cursor:pointer;color:var(--c-text-3);padding:0;font-size:11px;opacity:0;transition:opacity .15s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+        <i class="fas fa-times"></i>
+      </button>
     </div>`).join('');
 }
-
 window.toggleHubCheck = async (i) => {
   if (!hubData.checklist) return;
   hubData.checklist[i].done = !hubData.checklist[i].done;
   renderHubChecklist(hubData.checklist);
   if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
 };
-
 window.removeHubCheck = async (i) => {
   if (!hubData.checklist) return;
   hubData.checklist.splice(i, 1);
@@ -3569,7 +3893,6 @@ window.removeHubCheck = async (i) => {
 
 // ── Docs ──
 const DOC_ICONS = { apresentacao:'📊', proposta:'📄', contrato:'📋', roteiro:'🗒️', planilha:'📈', outro:'📁' };
-
 window.addHubDoc = async () => {
   const name = document.getElementById('hub-doc-name').value.trim();
   const url = document.getElementById('hub-doc-url').value.trim();
@@ -3580,27 +3903,30 @@ window.addHubDoc = async () => {
   document.getElementById('hub-doc-name').value = '';
   document.getElementById('hub-doc-url').value = '';
   renderHubDocs(hubData.docs);
+  toggleHubDocAdd();
   if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
   showToast('Documento adicionado!');
 };
-
 function renderHubDocs(docs) {
   const list = document.getElementById('hub-doc-list');
   const empty = document.getElementById('hub-doc-empty');
-  if (!docs || !docs.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
+  const count = document.getElementById('hub-doc-count');
+  if (!list) return;
+  const isHubAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
+  if (count) count.textContent = docs.length || '';
+  if (!docs || !docs.length) { list.innerHTML = ''; if(empty) empty.classList.remove('hidden'); return; }
+  if(empty) empty.classList.add('hidden');
   list.innerHTML = docs.map((d, i) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--c-bg);border-radius:10px;border:1px solid var(--c-border)">
-      <span style="font-size:22px;flex-shrink:0">${DOC_ICONS[d.type]||'📁'}</span>
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:1px solid var(--c-border);transition:all .15s" onmouseover="this.style.borderColor='var(--c-brand)';this.style.background='var(--c-brand-dim)'" onmouseout="this.style.borderColor='var(--c-border)';this.style.background=''">
+      <span style="font-size:24px;flex-shrink:0">${DOC_ICONS[d.type] || '📁'}</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600">${d.name}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--c-text)">${d.name}</div>
         <div style="font-size:11px;color:var(--c-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.url}</div>
       </div>
-      <a href="${d.url}" target="_blank" class="btn btn-secondary text-sm" style="padding:6px 12px;flex-shrink:0"><i class="fas fa-external-link-alt"></i></a>
-      <button onclick="removeHubDoc(${i})" class="btn btn-ghost btn-icon" style="width:28px;height:28px;flex-shrink:0"><i class="fas fa-trash text-xs" style="color:var(--c-text-3)"></i></button>
+      <a href="${d.url}" target="_blank" class="btn btn-secondary text-xs flex-shrink-0" style="padding:5px 12px"><i class="fas fa-external-link-alt"></i>Abrir</a>
+      ${isHubAdmin ? `<button onclick="removeHubDoc(${i})" class="btn btn-ghost btn-icon flex-shrink-0" style="width:26px;height:26px"><i class="fas fa-trash" style="font-size:10px;color:var(--c-text-3)"></i></button>` : ''}
     </div>`).join('');
 }
-
 window.removeHubDoc = async (i) => {
   if (!hubData.docs) return;
   hubData.docs.splice(i, 1);
@@ -3618,26 +3944,31 @@ window.addHubLink = async () => {
   document.getElementById('hub-link-label').value = '';
   document.getElementById('hub-link-url').value = '';
   renderHubLinks(hubData.links);
+  toggleHubLinkAdd();
   if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
   showToast('Link adicionado!');
 };
-
 function renderHubLinks(links) {
   const list = document.getElementById('hub-link-list');
   const empty = document.getElementById('hub-link-empty');
-  if (!links || !links.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
+  const count = document.getElementById('hub-link-count');
+  if (!list) return;
+  const isHubAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
+  if (count) count.textContent = links.length || '';
+  if (!links || !links.length) { list.innerHTML = ''; if(empty) empty.classList.remove('hidden'); return; }
+  if(empty) empty.classList.add('hidden');
   list.innerHTML = links.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--c-bg);border-radius:9px;border:1px solid var(--c-border)">
-      <i class="fas fa-link" style="color:var(--c-brand);font-size:12px;flex-shrink:0"></i>
-      <div style="flex:1;min-width:0">
-        <a href="${l.url}" target="_blank" style="font-size:13px;font-weight:600;color:var(--c-brand);text-decoration:none">${l.label}</a>
-        <div style="font-size:11px;color:var(--c-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.url}</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px solid var(--c-border)">
+      <div style="width:30px;height:30px;border-radius:8px;background:var(--c-green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-link" style="font-size:11px;color:var(--c-green)"></i>
       </div>
-      <button onclick="removeHubLink(${i})" class="btn btn-ghost btn-icon" style="width:26px;height:26px;flex-shrink:0"><i class="fas fa-trash text-xs" style="color:var(--c-text-3)"></i></button>
+      <div style="flex:1;min-width:0">
+        <a href="${l.url}" target="_blank" style="font-size:13px;font-weight:700;color:var(--c-brand);text-decoration:none">${l.label}</a>
+        <div style="font-size:10px;color:var(--c-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.url}</div>
+      </div>
+      ${isHubAdmin ? `<button onclick="removeHubLink(${i})" class="btn btn-ghost btn-icon" style="width:24px;height:24px;flex-shrink:0"><i class="fas fa-trash" style="font-size:10px;color:var(--c-text-3)"></i></button>` : ''}
     </div>`).join('');
 }
-
 window.removeHubLink = async (i) => {
   if (!hubData.links) return;
   hubData.links.splice(i, 1);
@@ -3645,125 +3976,87 @@ window.removeHubLink = async (i) => {
   if (currentHubEventId) await updateDoc(doc(eventosRef, currentHubEventId), { hub: hubData }).catch(()=>{});
 };
 
-window.copyHubQrUrl = () => {
-  const inp = document.getElementById('hub-qr-url');
-  if (inp) { navigator.clipboard.writeText(inp.value); showToast('Link copiado!'); }
-};
 
 
-// ── Hub de Eventos (tab para todos os usuários) ───────────
+// ── Hub Tab: event grid ───────────────────────────────────
 function renderHubTab() {
-  const list = document.getElementById('hub-event-list');
+  const grid = document.getElementById('hub-event-grid');
   const empty = document.getElementById('hub-event-empty');
-  if (!list) return;
+  if (!grid) return;
 
-  const isAdmin = currentUserRole === 'admin';
+  // If in detail view, stay there
+  const detail = document.getElementById('hub-detail-view');
+  if (detail && detail.style.display !== 'none') return;
 
   if (!allEvents.length) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
+    grid.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
     return;
   }
-  empty.style.display = 'none';
+  if (empty) empty.classList.add('hidden');
 
-  // Count leads per event
-  const leadCounts = {};
-  allEvents.forEach(ev => {
-    leadCounts[ev.name] = allClients.filter(c => c.evento === ev.name).length;
-  });
+  const today = new Date(); today.setHours(0,0,0,0);
+  const parse = s => s ? new Date(s + 'T00:00:00') : null;
 
-  list.innerHTML = allEvents.map(ev => {
+  grid.innerHTML = allEvents.map(ev => {
     const hub = ev.hub || {};
-    const count = leadCounts[ev.name] || 0;
-    const today = new Date(); today.setHours(0,0,0,0);
-    const parse = s => s ? new Date(s + 'T00:00:00') : null;
+    const count = allClients.filter(c => c.evento === ev.name).length;
+    const realizadas = allClients.filter(c => c.evento === ev.name && c.pipelineStage === 'reuniao_realizada').length;
     const start = parse(ev.startDate), end = parse(ev.endDate);
     const isActive = start && end && start <= today && today <= end;
     const isPast = end && end < today;
-    const isFuture = start && start > today;
-    const statusBadge = isActive
-      ? `<span class="badge badge-green text-xs">Acontecendo agora</span>`
-      : isPast
-        ? `<span class="badge badge-gray text-xs">Encerrado</span>`
-        : `<span class="badge badge-amber text-xs">Em breve</span>`;
-
-    const hasContent = hub.desc || (hub.docs && hub.docs.length) || (hub.links && hub.links.length) || hub.notas;
+    const statusDot = isActive ? '#4ade80' : isPast ? '#94a3b8' : '#fbbf24';
+    const statusText = isActive ? 'Em andamento' : isPast ? 'Encerrado' : 'Em breve';
+    const meta = ev.meta || 0;
+    const pct = meta > 0 ? Math.min(100, Math.round(count / meta * 100)) : null;
+    const heroBg = ev.color || 'var(--c-brand)';
+    const docCount = (hub.docs || []).length;
+    const linkCount = (hub.links || []).length;
+    const checkTotal = (hub.checklist || []).length;
+    const checkDone = (hub.checklist || []).filter(i => i.done).length;
 
     return `
-    <div class="p-4 hover:bg-[var(--c-bg)] transition-colors cursor-pointer" onclick="openEventHub('${ev.id}', '${ev.name.replace(/'/g,"\\'")}')">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${ev.color ? ev.color + '20' : 'var(--c-brand-dim)'}">
-            <span style="font-size:18px">📁</span>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-bold text-sm">${ev.name}</span>
-              ${statusBadge}
-              ${hasContent ? '<span class="badge badge-blue text-xs">Com conteúdo</span>' : ''}
+    <div class="card card-hover" style="padding:0;overflow:hidden;cursor:pointer" onclick="openEventHub('${ev.id}', '${ev.name.replace(/'/g,"\\'")}')">
+      <div style="height:6px;background:${ev.color || 'var(--c-brand)'}"></div>
+      <div style="padding:18px 18px 14px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+              <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0"></div>
+              <span style="font-size:10px;font-weight:700;color:var(--c-text-3);text-transform:uppercase;letter-spacing:.06em">${statusText}</span>
             </div>
-            <div class="text-xs mt-0.5 flex items-center gap-3 flex-wrap" style="color:var(--c-text-3)">
-              ${ev.startDate ? `<span><i class="fas fa-calendar mr-1"></i>${new Date(ev.startDate+'T00:00:00').toLocaleDateString('pt-BR')} — ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
-              ${hub.local ? `<span><i class="fas fa-map-marker-alt mr-1"></i>${hub.local}</span>` : ''}
-              <span><i class="fas fa-users mr-1"></i>${count} leads</span>
-              ${hub.docs && hub.docs.length ? `<span><i class="fas fa-file-alt mr-1"></i>${hub.docs.length} docs</span>` : ''}
-              ${hub.links && hub.links.length ? `<span><i class="fas fa-link mr-1"></i>${hub.links.length} links</span>` : ''}
-            </div>
+            <div style="font-size:15px;font-weight:800;line-height:1.2">${ev.name}</div>
           </div>
+          <i class="fas fa-chevron-right" style="color:var(--c-text-3);font-size:11px;margin-top:4px;flex-shrink:0"></i>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          ${ev.meta ? `<div class="text-right hidden sm:block"><div class="text-xs font-bold">${Math.round(count/ev.meta*100)}%</div><div class="text-xs" style="color:var(--c-text-3)">da meta</div></div>` : ''}
-          <i class="fas fa-chevron-right text-xs" style="color:var(--c-text-3)"></i>
+        ${ev.startDate ? `<div style="font-size:11px;color:var(--c-text-3);margin-bottom:3px">📅 ${new Date(ev.startDate+'T00:00:00').toLocaleDateString('pt-BR')} — ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('pt-BR')}</div>` : ''}
+        ${hub.local ? `<div style="font-size:11px;color:var(--c-text-3);margin-bottom:10px">📍 ${hub.local}</div>` : '<div style="margin-bottom:10px"></div>'}
+        ${pct !== null ? `
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+              <span style="color:var(--c-text-3)">Meta de leads</span>
+              <span style="font-weight:700;color:${pct>=100?'var(--c-green)':'var(--c-text-2)'}">${count}/${meta} · ${pct}%</span>
+            </div>
+            <div style="height:4px;background:var(--c-border);border-radius:99px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${pct>=100?'var(--c-green)':'var(--c-brand)'};border-radius:99px"></div>
+            </div>
+          </div>` :
+          `<div style="font-size:11px;color:var(--c-text-3);margin-bottom:10px">👥 ${count} lead${count!==1?'s':''} captado${count!==1?'s':''}</div>`}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--c-border)">
+          ${docCount ? `<span style="font-size:10px;font-weight:700;color:var(--c-amber);background:var(--c-amber-dim);padding:2px 8px;border-radius:99px">📊 ${docCount} doc${docCount>1?'s':''}</span>` : ''}
+          ${linkCount ? `<span style="font-size:10px;font-weight:700;color:var(--c-green);background:var(--c-green-dim);padding:2px 8px;border-radius:99px">🔗 ${linkCount} link${linkCount>1?'s':''}</span>` : ''}
+          ${checkTotal ? `<span style="font-size:10px;font-weight:700;color:var(--c-purple);background:var(--c-purple-dim);padding:2px 8px;border-radius:99px">✅ ${checkDone}/${checkTotal}</span>` : ''}
+          ${realizadas ? `<span style="font-size:10px;font-weight:700;color:var(--c-brand);background:var(--c-brand-dim);padding:2px 8px;border-radius:99px">🤝 ${realizadas}</span>` : ''}
         </div>
       </div>
-      ${hub.desc ? `<p class="text-xs mt-2 line-clamp-1" style="color:var(--c-text-2)">${hub.desc}</p>` : ''}
     </div>`;
-  }).join('<hr style="border-color:var(--c-border)">');
+  }).join('');
 }
 
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
 </script>
 <!-- ══ EVENT HUB MODAL ══ -->
-<div id="eventHubModal" class="hidden modal-overlay" onclick="if(event.target===this)closeEventHub()">
-  <div class="modal-box modal-box-xl" style="max-width:760px">
-    <div style="padding:24px">
-      <!-- Header -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
-        <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c-text-3);margin-bottom:4px">Hub do Evento</div>
-          <h3 id="hub-event-name" style="font-size:20px;font-weight:800"></h3>
-        </div>
-        <button onclick="closeEventHub()" class="btn btn-ghost btn-icon"><i class="fas fa-times text-sm"></i></button>
-      </div>
-
-      <!-- Tabs -->
-      <div style="display:flex;gap:0;border-bottom:1px solid var(--c-border);margin-bottom:20px">
-        <button class="hub-tab-btn active" data-htab="info" onclick="switchHubTab('info')">
-          <i class="fas fa-info-circle mr-1.5"></i>Informações
-        </button>
-        <button class="hub-tab-btn" data-htab="docs" onclick="switchHubTab('docs')">
-          <i class="fas fa-file-alt mr-1.5"></i>Documentos
-        </button>
-        <button class="hub-tab-btn" data-htab="links" onclick="switchHubTab('links')">
-          <i class="fas fa-link mr-1.5"></i>Links
-        </button>
-        <button class="hub-tab-btn" data-htab="notas" onclick="switchHubTab('notas')">
-          <i class="fas fa-sticky-note mr-1.5"></i>Notas
-        </button>
-      </div>
-
-      <!-- Tab: Info -->
-      <div id="hub-tab-info" class="hub-tab-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <div><label class="section-label">Descrição</label><textarea id="hub-desc" class="form-input" rows="4" placeholder="Descreva o evento, objetivos, público-alvo..."></textarea></div>
-          <div>
-            <div style="margin-bottom:12px"><label class="section-label">Local</label><input type="text" id="hub-local" class="form-input text-sm" placeholder="Ex: Centro de Convenções, São Paulo"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div><label class="section-label">Início</label><input type="date" id="hub-start" class="form-input text-sm"></div>
-              <div><label class="section-label">Fim</label><input type="date" id="hub-end" class="form-input text-sm"></div>
-            </div>
-          </div>
         </div>
         <div style="margin-bottom:16px"><label class="section-label">Responsável pelo evento</label><input type="text" id="hub-resp" class="form-input text-sm" placeholder="Nome do responsável interno"></div>
         <div style="margin-bottom:16px"><label class="section-label">Público-alvo / Perfil esperado</label><textarea id="hub-perfil" class="form-input" rows="2" placeholder="Ex: CTOs, Gerentes de TI de empresas com +200 funcionários..."></textarea></div>
