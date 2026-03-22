@@ -544,7 +544,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
   <main class="app-main" id="app-main">
 
     <!-- ══ TAB: DASHBOARD ══ -->
-    <div id="tab-dashboard-content" class="hidden fade-up">
+    <div id="tab-dashboard-content" class="fade-up" style="display:none">
       <div class="flex items-center justify-between mb-5">
         <div>
           <h2 class="text-2xl font-extrabold">Bom dia! 👋</h2>
@@ -613,7 +613,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: CADASTRO ══ -->
-    <div id="tab-cadastro-content" class="fade-up">
+    <div id="tab-cadastro-content" class="fade-up" style="display:none">
       <div class="max-w-2xl mx-auto">
         <div class="flex items-center justify-between mb-5">
           <div>
@@ -791,7 +791,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: REGISTROS ══ -->
-    <div id="tab-registros-content" class="hidden fade-up">
+    <div id="tab-registros-content" class="fade-up" style="display:none">
       <!-- Toolbar -->
       <div class="flex flex-col sm:flex-row gap-2 mb-3">
         <div class="relative flex-1">
@@ -849,7 +849,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: AGENDA ══ -->
-    <div id="tab-agenda-content" class="hidden fade-up">
+    <div id="tab-agenda-content" class="fade-up" style="display:none">
       <div class="flex items-center justify-between mb-5">
         <div><h2 class="text-2xl font-extrabold">Agenda</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Reuniões agendadas</p></div>
         <div class="flex gap-2 items-center">
@@ -872,7 +872,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: HUB DE EVENTOS ══ -->
-    <div id="tab-hub-content" class="hidden fade-up">
+    <div id="tab-hub-content" class="fade-up" style="display:none">
 
       <!-- ── LIST VIEW: all events ── -->
       <div id="hub-list-view">
@@ -1072,7 +1072,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
         <!-- ══ TAB: ANALYTICS ══ -->
-    <div id="tab-analytics-content" class="hidden fade-up">
+    <div id="tab-analytics-content" class="fade-up" style="display:none">
       <div class="flex items-center justify-between mb-5">
         <div><h2 class="text-2xl font-extrabold">Analytics</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Desempenho de captação</p></div>
         <select id="analytics-evento-filter" class="form-input text-sm w-auto"><option value="todos">Todos os eventos</option></select>
@@ -1096,7 +1096,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: ADMIN ══ -->
-    <div id="tab-admin-content" class="hidden fade-up">
+    <div id="tab-admin-content" class="fade-up" style="display:none">
       <div class="max-w-2xl mx-auto space-y-5">
         <div><h2 class="text-2xl font-extrabold">Administração</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Gerencie eventos, brindes e configurações</p></div>
         <!-- Events -->
@@ -1165,7 +1165,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     </div>
 
     <!-- ══ TAB: USUARIOS ══ -->
-    <div id="tab-usuarios-content" class="hidden fade-up">
+    <div id="tab-usuarios-content" class="fade-up" style="display:none">
       <div class="space-y-5">
         <div class="flex items-center justify-between">
           <div><h2 class="text-2xl font-extrabold">Usuários</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Gerencie o acesso da equipe</p></div>
@@ -1675,7 +1675,16 @@ function switchTab(target){
     const sItem=document.getElementById(`snav-${t}`);
     if(btn)btn.classList.toggle('active',t===target);
     if(sItem)sItem.classList.toggle('active',t===target);
-    if(content){content.classList.toggle('hidden',t!==target);if(t===target){content.classList.add('fade-up');setTimeout(()=>content.classList.remove('fade-up'),300);}}
+    if(content){
+      // Use explicit style.display instead of Tailwind hidden class
+      if(t===target){
+        content.style.display='block';
+        content.classList.add('fade-up');
+        setTimeout(()=>content.classList.remove('fade-up'),300);
+      } else {
+        content.style.display='none';
+      }
+    }
     if(mItem)mItem.classList.toggle('active',t===target);
   });
   if(target==='dashboard')renderDashboard();
