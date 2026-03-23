@@ -3656,7 +3656,7 @@ window.openEventHub = async (eventId, eventName) => {
     const DOC_IC = {apresentacao:'📊',proposta:'📄',contrato:'📋',roteiro:'🗒️',planilha:'📈',outro:'📁'};
     const DOC_LB = {apresentacao:'Apresentação',proposta:'Proposta',contrato:'Contrato',roteiro:'Roteiro',planilha:'Planilha',outro:'Documento'};
 
-    detail.innerHTML = `<div class="hep" style="--ac:${hex};--ac2:${ra(.08)}">
+    detail.innerHTML = `<div class="hep" style="--ac:${hex};max-width:100%;overflow:hidden">
 
 <button class="hep-back hep-in" onclick="showHubList()"><i class="fas fa-arrow-left" style="font-size:10px"></i>Todos os eventos</button>
 
@@ -3716,7 +3716,7 @@ window.openEventHub = async (eventId, eventName) => {
 <div class="hep-in3" style="display:grid;grid-template-columns:1fr 260px;gap:32px;align-items:start">
 
   <!-- MAIN CONTENT (left) -->
-  <div>
+  <div style="min-width:0;overflow:hidden">
 
     <!-- Sobre: text-first, no box -->
     ${hubData.desc||hubData.perfil?`
@@ -3804,7 +3804,7 @@ window.openEventHub = async (eventId, eventName) => {
       <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:14px">QR Code</div>
       <div id="hub-qr-display" style="display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;margin-bottom:12px"></div>
       <div style="display:flex;gap:7px">
-        <button onclick="navigator.clipboard.writeText('${qrUrl}');showToast('Copiado!')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'"><i class="fas fa-copy" style="margin-right:4px"></i>Copiar</button>
+        window._copyHubQr();showToast('Copiado!')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'"><i class="fas fa-copy" style="margin-right:4px"></i>Copiar</button>
         <button id="hub-qr-dl" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'"><i class="fas fa-download" style="margin-right:4px"></i>Baixar</button>
       </div>
     </div>
@@ -3842,6 +3842,8 @@ window.openEventHub = async (eventId, eventName) => {
 </div><!-- /layout -->
 </div><!-- /hep -->`;
 
+    window._hubQrUrl = qrUrl;
+    window._copyHubQr = () => { navigator.clipboard.writeText(window._hubQrUrl||''); showToast('Link copiado!'); };
     setTimeout(()=>{
       const qe=document.getElementById('hub-qr-display');
       if(qe&&!qe.querySelector('canvas')) new QRCode(qe,{text:qrUrl,width:130,height:130,colorDark:hex,colorLight:'#ffffff'});
