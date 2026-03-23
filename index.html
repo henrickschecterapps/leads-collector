@@ -346,6 +346,40 @@ tr:hover .quick-note{display:block}
 .hub-tab-btn:hover{color:var(--c-brand)}
 .hub-tab-btn.active{color:var(--c-brand);border-bottom-color:var(--c-brand)}
 
+
+/* ── Hub Landing Page ── */
+.hub-lp { --hub-accent: #0070c0; }
+.hub-back-btn { display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:9px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text-2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:28px }
+.hub-back-btn:hover { border-color:var(--hub-accent);color:var(--hub-accent) }
+.hub-stat-card { background:var(--c-surface);border:1px solid var(--c-border);border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;transition:box-shadow .2s,transform .2s }
+.hub-stat-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.09);transform:translateY(-2px) }
+.hub-stat-accent { position:absolute;top:0;left:0;width:100%;height:3px }
+.hub-doc-card { background:var(--c-surface);border:1.5px solid var(--c-border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:all .2s }
+.hub-doc-card:hover { border-color:var(--hub-accent);box-shadow:0 4px 20px rgba(0,0,0,.09);transform:translateY(-2px) }
+.hub-doc-open { display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:10px;border:1.5px solid var(--c-border);background:var(--c-bg);color:var(--c-brand);text-decoration:none;font-size:12px;font-weight:700;transition:all .2s }
+.hub-doc-card:hover .hub-doc-open { background:var(--hub-accent);color:#fff;border-color:var(--hub-accent) }
+.hub-link-row { display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;transition:background .15s;cursor:pointer }
+.hub-link-row:hover { background:var(--c-bg) }
+.hub-section-title { font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--c-text);margin:0 }
+.hub-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--c-text-3) }
+.hub-check-item { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--c-border);cursor:pointer;user-select:none }
+.hub-check-item:last-child { border-bottom:none }
+.hub-check-item:hover .hub-check-box { border-color:var(--hub-accent) }
+.hub-check-box { width:18px;height:18px;border-radius:5px;border:2px solid var(--c-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s }
+.hub-check-box.done { background:var(--hub-accent);border-color:var(--hub-accent) }
+.hub-add-btn { display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:8px;border:1px solid var(--c-border);background:transparent;color:var(--c-text-2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s }
+.hub-add-btn:hover { border-color:var(--hub-accent);color:var(--hub-accent) }
+.hub-edit-hero-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;backdrop-filter:blur(8px);transition:all .15s }
+.hub-edit-hero-btn:hover { background:rgba(255,255,255,.24) }
+.hub-qr-action { flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s }
+.hub-qr-action:hover { background:rgba(255,255,255,.24) }
+@keyframes hubFadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.hub-anim { animation:hubFadeUp .45s cubic-bezier(.22,.68,0,1.2) both }
+.hub-anim-1 { animation-delay:.04s }
+.hub-anim-2 { animation-delay:.1s }
+.hub-anim-3 { animation-delay:.16s }
+.hub-anim-4 { animation-delay:.22s }
+.hub-anim-5 { animation-delay:.28s }
 /* ── Dark input calendar fix ── */
 .dark input[type="date"]::-webkit-calendar-picker-indicator,.dark input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1)}
 
@@ -3578,8 +3612,8 @@ window.openEventHub = async (eventId, eventName) => {
   const detail = document.getElementById('hub-detail-view');
   detail.style.display = '';
   detail.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:320px;flex-direction:column;gap:14px">
-    <div style="width:38px;height:38px;border-radius:50%;border:3px solid var(--c-border);border-top-color:var(--c-brand);animation:spin .7s linear infinite"></div>
-    <span style="font-size:13px;color:var(--c-text-3);font-weight:500">Carregando...</span></div>`;
+    <div style="width:36px;height:36px;border-radius:50%;border:3px solid var(--c-border);border-top-color:var(--c-brand);animation:spin .7s linear infinite"></div>
+    <span style="font-size:13px;color:var(--c-text-3)">Carregando...</span></div>`;
 
   const isAdmin = currentUserRole === 'admin' || currentUserRole === 'editor';
 
@@ -3589,339 +3623,272 @@ window.openEventHub = async (eventId, eventName) => {
     const ev = snap.data();
     hubData = ev.hub || {};
 
+    // ── Data prep ──
     const today = new Date(); today.setHours(0,0,0,0);
-    const parse  = s => s ? new Date(s + 'T00:00:00') : null;
-    const fmt    = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'short',year:'numeric'}) : '';
-    const start  = parse(ev.startDate), end = parse(ev.endDate);
-    const isActive = start && end && start <= today && today <= end;
-    const isPast   = end && end < today;
-    const daysLeft = start && !isPast && !isActive ? Math.ceil((start - today) / 86400000) : null;
-    const daysIn   = isActive && start ? Math.ceil((today - start) / 86400000) + 1 : null;
+    const parse = s => s ? new Date(s+'T00:00:00') : null;
+    const fmt   = s => parse(s) ? parse(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+    const s0 = parse(ev.startDate), e0 = parse(ev.endDate);
+    const isActive = s0 && e0 && s0 <= today && today <= e0;
+    const isPast   = e0 && e0 < today;
+    const daysLeft = s0 && !isPast && !isActive ? Math.ceil((s0-today)/86400000) : null;
+    const daysIn   = isActive && s0 ? Math.ceil((today-s0)/86400000)+1 : null;
+    const statusLabel = isActive?'Em andamento':isPast?'Encerrado':'Em breve';
+    const statusDot   = isActive?'#4ade80':isPast?'#94a3b8':'#fbbf24';
+    const contextNote = daysLeft?`Começa em ${daysLeft}d`:daysIn?`Dia ${daysIn}`:isPast?'Encerrado':'';
 
     const hex = ev.color || '#0070c0';
-    // derive a darker shade for text
     const toRgb = h => [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
     const [r,g,b] = toRgb(hex);
-    const rgba = (a) => `rgba(${r},${g},${b},${a})`;
+    const ra = a => `rgba(${r},${g},${b},${a})`;
 
-    const leadCount  = allClients.filter(c => c.evento === ev.name).length;
-    const realizadas = allClients.filter(c => c.evento === ev.name && c.pipelineStage === 'reuniao_realizada').length;
-    const agendadas  = allClients.filter(c => c.evento === ev.name && c.pipelineStage === 'reuniao_agendada').length;
-    const novos      = allClients.filter(c => c.evento === ev.name && (c.pipelineStage || 'novo') === 'novo').length;
-    const meta = ev.meta || 0;
-    const pct  = meta > 0 ? Math.min(100, Math.round(leadCount / meta * 100)) : null;
+    const allEvLeads   = allClients.filter(c => c.evento === ev.name);
+    const leadCount    = allEvLeads.length;
+    const realizadas   = allEvLeads.filter(c => c.pipelineStage === 'reuniao_realizada').length;
+    const agendadas    = allEvLeads.filter(c => c.pipelineStage === 'reuniao_agendada').length;
+    const contatados   = allEvLeads.filter(c => c.pipelineStage === 'contatado').length;
+    const meta  = ev.meta || 0;
+    const pct   = meta > 0 ? Math.min(100,Math.round(leadCount/meta*100)) : null;
 
     const docs   = hubData.docs  || [];
     const links  = hubData.links || [];
     const checks = hubData.checklist || [];
-    const doneChecks = checks.filter(i => i.done).length;
+    const doneN  = checks.filter(i=>i.done).length;
 
-    const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/, '/');
+    const baseUrl = window.location.href.split('?')[0].replace('index.html','').replace(/\/[^/]*\.html$/,'/');
     const qrUrl   = `${baseUrl}cadastro-publico.html?event=${encodeURIComponent(ev.name)}`;
 
-    const statusText  = isActive ? 'Em andamento' : isPast ? 'Encerrado' : 'Em breve';
-    const statusGlyph = isActive ? '🟢' : isPast ? '⚫' : '🟡';
-    const contextNote = daysLeft ? `Começa em ${daysLeft} dia${daysLeft>1?'s':''}` : daysIn ? `Dia ${daysIn} do evento` : isPast ? 'Evento encerrado' : '';
+    // Set CSS accent on wrapper
+    detail.style.setProperty('--hub-accent', hex);
 
-    const DOC_ICONS  = { apresentacao:'📊', proposta:'📄', contrato:'📋', roteiro:'🗒️', planilha:'📈', outro:'📁' };
-    const DOC_LABELS = { apresentacao:'Apresentação', proposta:'Proposta', contrato:'Contrato', roteiro:'Roteiro', planilha:'Planilha', outro:'Documento' };
+    detail.innerHTML = `<div class="hub-lp" style="--hub-accent:${hex}">
 
-    detail.innerHTML = `
-<style>
-  .hub-lp { font-family:'Plus Jakarta Sans',sans-serif; }
-  .hub-lp * { box-sizing:border-box; }
-  .hub-stat-card { background:var(--c-surface); border:1px solid var(--c-border); border-radius:14px; padding:20px 22px; position:relative; overflow:hidden; transition:box-shadow .2s,transform .2s; }
-  .hub-stat-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.08); transform:translateY(-2px); }
-  .hub-doc-card { background:var(--c-surface); border:1.5px solid var(--c-border); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:12px; transition:all .2s; cursor:pointer; }
-  .hub-doc-card:hover { border-color:${hex}; box-shadow:0 4px 20px ${rgba(.12)}; transform:translateY(-2px); }
-  .hub-doc-card:hover .hub-doc-open { background:${hex}; color:#fff; border-color:${hex}; }
-  .hub-link-row { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; transition:background .15s; cursor:pointer; }
-  .hub-link-row:hover { background:var(--c-bg); }
-  .hub-section-title { font-size:18px; font-weight:800; letter-spacing:-.02em; color:var(--c-text); margin:0; }
-  .hub-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--c-text-3); }
-  .hub-check-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); cursor:pointer; user-select:none; }
-  .hub-check-item:last-child { border-bottom:none; }
-  .hub-check-item:hover .hub-check-box { border-color:${hex}; }
-  .hub-check-box { width:18px; height:18px; border-radius:5px; border:2px solid var(--c-border); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .15s; }
-  .hub-check-box.done { background:${hex}; border-color:${hex}; }
-  .hub-back-btn { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:9px; border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-text-2); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; margin-bottom:28px; }
-  .hub-back-btn:hover { border-color:${hex}; color:${hex}; }
-  .hub-edit-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:10px; border:1.5px solid rgba(255,255,255,.35); background:rgba(255,255,255,.12); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; backdrop-filter:blur(8px); transition:all .15s; }
-  .hub-edit-btn:hover { background:rgba(255,255,255,.22); }
-  .hub-add-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; border:1px solid var(--c-border); background:transparent; color:var(--c-text-2); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
-  .hub-add-btn:hover { border-color:${hex}; color:${hex}; }
-  @keyframes hubFadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  .hub-section { animation: hubFadeUp .4s ease both; }
-  .hub-section:nth-child(2) { animation-delay:.05s }
-  .hub-section:nth-child(3) { animation-delay:.1s }
-  .hub-section:nth-child(4) { animation-delay:.15s }
-  .hub-section:nth-child(5) { animation-delay:.2s }
-</style>
+<!-- ① BACK -->
+<button class="hub-back-btn hub-anim" onclick="showHubList()">
+  <i class="fas fa-arrow-left" style="font-size:10px"></i>Todos os eventos
+</button>
 
-<div class="hub-lp">
-
-  <!-- Back -->
-  <button class="hub-back-btn" onclick="showHubList()">
-    <i class="fas fa-arrow-left" style="font-size:10px"></i> Todos os eventos
-  </button>
-
-  <!-- ══ HERO ══ -->
-  <div class="hub-section" style="border-radius:24px;overflow:hidden;margin-bottom:32px;background:linear-gradient(135deg,${hex} 0%,${rgba(.75)} 100%);position:relative;min-height:220px">
-    <!-- Topographic pattern -->
-    <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.07" xmlns="http://www.w3.org/2000/svg">
-      <defs><pattern id="tp" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-        <circle cx="30" cy="30" r="28" fill="none" stroke="white" stroke-width=".8"/>
-        <circle cx="30" cy="30" r="20" fill="none" stroke="white" stroke-width=".6"/>
-        <circle cx="30" cy="30" r="12" fill="none" stroke="white" stroke-width=".5"/>
-      </pattern></defs>
-      <rect width="100%" height="100%" fill="url(#tp)"/>
-    </svg>
-    <!-- Content -->
-    <div style="position:relative;padding:36px 40px;display:flex;flex-direction:column;justify-content:space-between;min-height:220px">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
-        <!-- Status pill -->
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.15);border-radius:99px;padding:5px 14px;backdrop-filter:blur(10px)">
-          <span style="font-size:12px">${statusGlyph}</span>
-          <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em">${statusText}</span>
-          ${contextNote ? `<span style="font-size:10px;color:rgba(255,255,255,.55);padding-left:4px;border-left:1px solid rgba(255,255,255,.2)">${contextNote}</span>` : ''}
-        </div>
-        ${isAdmin ? `<button class="hub-edit-btn" onclick="openHubEditModal()"><i class="fas fa-pen" style="font-size:10px"></i>Editar</button>` : ''}
+<!-- ② HERO -->
+<div class="hub-anim hub-anim-1" style="border-radius:24px;overflow:hidden;background:linear-gradient(135deg,${hex},${ra(.7)});margin-bottom:32px;position:relative">
+  <div style="position:absolute;inset:0;opacity:.07">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="hpat" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="27" fill="none" stroke="white" stroke-width=".8"/><circle cx="30" cy="30" r="18" fill="none" stroke="white" stroke-width=".5"/><circle cx="0" cy="0" r="27" fill="none" stroke="white" stroke-width=".8"/></pattern></defs><rect width="100%" height="100%" fill="url(#hpat)"/></svg>
+  </div>
+  <div style="position:relative;padding:32px 36px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:5px 14px;backdrop-filter:blur(12px)">
+        <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};box-shadow:0 0 7px ${statusDot}"></div>
+        <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em">${statusLabel}</span>
+        ${contextNote ? `<span style="font-size:10px;color:rgba(255,255,255,.5);padding-left:8px;border-left:1px solid rgba(255,255,255,.2)">${contextNote}</span>` : ''}
       </div>
-      <div style="margin-top:auto;padding-top:24px">
-        <h1 style="font-size:clamp(26px,4vw,40px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.03em;margin-bottom:14px">${ev.name}</h1>
-        <div style="display:flex;flex-wrap:wrap;gap:20px">
-          ${ev.startDate ? `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-calendar-alt" style="opacity:.7;width:13px"></i><span>${fmt(ev.startDate)} — ${fmt(ev.endDate)}</span></div>` : ''}
-          ${hubData.local ? `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-map-marker-alt" style="opacity:.7;width:13px"></i><span>${hubData.local}</span></div>` : ''}
-          ${hubData.resp  ? `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-user" style="opacity:.7;width:13px"></i><span>${hubData.resp}</span></div>` : ''}
-          ${hubData.stand ? `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-store" style="opacity:.7;width:13px"></i><span>${hubData.stand}</span></div>` : ''}
-          ${hubData.budget? `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-tag" style="opacity:.7;width:13px"></i><span>${hubData.budget}</span></div>` : ''}
-        </div>
+      ${isAdmin ? `<button class="hub-edit-hero-btn" onclick="openHubEditModal()"><i class="fas fa-pen" style="font-size:10px"></i>Editar evento</button>` : ''}
+    </div>
+    <h1 style="font-size:clamp(24px,3.5vw,38px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.03em;margin-bottom:16px">${ev.name}</h1>
+    <div style="display:flex;flex-wrap:wrap;gap:18px">
+      ${ev.startDate ? `<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-calendar-alt" style="width:13px;opacity:.7"></i>${fmt(ev.startDate)} — ${fmt(ev.endDate)}</span>` : ''}
+      ${hubData.local  ? `<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-map-marker-alt" style="width:13px;opacity:.7"></i>${hubData.local}</span>` : ''}
+      ${hubData.resp   ? `<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-user" style="width:13px;opacity:.7"></i>${hubData.resp}</span>` : ''}
+      ${hubData.stand  ? `<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-store" style="width:13px;opacity:.7"></i>${hubData.stand}</span>` : ''}
+      ${hubData.budget ? `<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.75)"><i class="fas fa-tag" style="width:13px;opacity:.7"></i>${hubData.budget}</span>` : ''}
+    </div>
+  </div>
+  ${meta ? `
+  <div style="position:relative;padding:0 36px 24px">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.6);font-weight:600;margin-bottom:7px">
+      <span>Progresso da meta</span><span>${leadCount} / ${meta} · ${pct}%</span>
+    </div>
+    <div style="height:5px;background:rgba(0,0,0,.2);border-radius:99px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:rgba(255,255,255,.85);border-radius:99px;transition:width 1s ease"></div>
+    </div>
+  </div>` : ''}
+</div>
+
+<!-- ③ STATS -->
+<div class="hub-anim hub-anim-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px">
+  ${[
+    {c:hex,      icon:'fa-users',     label:'Leads',           val:leadCount,  sub:meta?pct+'% da meta':'captados'},
+    {c:'#059669',icon:'fa-handshake', label:'Reuniões',        val:realizadas, sub:leadCount?Math.round(realizadas/leadCount*100)+'% conv.':'realizadas'},
+    {c:'#d97706',icon:'fa-calendar',  label:'Agendadas',       val:agendadas,  sub:'pendentes'},
+    {c:'#6d28d9',icon:'fa-phone-alt', label:'Contatados',      val:contatados, sub:'abordados'},
+  ].map(k=>`
+  <div class="hub-stat-card">
+    <div class="hub-stat-accent" style="background:${k.c}"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <span class="hub-label">${k.label}</span>
+      <div style="width:28px;height:28px;border-radius:8px;background:${k.c}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas ${k.icon}" style="font-size:11px;color:${k.c}"></i>
       </div>
     </div>
-    <!-- Meta progress (if set) -->
-    ${meta ? `
-    <div style="position:relative;padding:0 40px 24px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.6);font-weight:600;margin-bottom:7px">
-        <span>Progresso da meta</span>
-        <span>${leadCount} / ${meta} leads · <strong style="color:rgba(255,255,255,.9)">${pct}%</strong></span>
+    <div style="font-size:32px;font-weight:900;line-height:1;letter-spacing:-.02em;margin-bottom:4px">${k.val}</div>
+    <div style="font-size:11px;color:var(--c-text-3)">${k.sub}</div>
+  </div>`).join('')}
+</div>
+
+<!-- ④ BODY GRID -->
+<div style="display:grid;grid-template-columns:1fr 290px;gap:28px;align-items:start">
+
+  <!-- LEFT -->
+  <div style="display:flex;flex-direction:column;gap:32px">
+
+    <!-- Sobre -->
+    ${hubData.desc || hubData.perfil ? `
+    <section class="hub-anim hub-anim-3">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 class="hub-section-title">Sobre o evento</h2>
+        ${isAdmin ? `<button class="hub-add-btn" onclick="openHubEditModal()"><i class="fas fa-pen" style="font-size:10px"></i>Editar</button>` : ''}
       </div>
-      <div style="height:5px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:rgba(255,255,255,.88);border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
+      ${hubData.desc ? `<p style="font-size:15px;color:var(--c-text-2);line-height:1.85;margin:0 0 ${hubData.perfil?'22px':'0'}">${hubData.desc}</p>` : ''}
+      ${hubData.perfil ? `
+      <div style="display:flex;gap:14px;padding:16px 20px;background:${ra(.07)};border-left:3px solid ${hex};border-radius:0 12px 12px 0">
+        <i class="fas fa-crosshairs" style="color:${hex};flex-shrink:0;font-size:14px;margin-top:2px"></i>
+        <div><div class="hub-label" style="margin-bottom:6px;color:${hex}">Público-alvo</div>
+        <p style="font-size:14px;color:var(--c-text-2);line-height:1.7;margin:0">${hubData.perfil}</p></div>
+      </div>` : ''}
+    </section>` : (isAdmin ? `
+    <section class="hub-anim hub-anim-3">
+      <div style="padding:40px 32px;border:2px dashed var(--c-border);border-radius:18px;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px;opacity:.2">📋</div>
+        <p style="font-size:14px;font-weight:600;color:var(--c-text);margin-bottom:6px">Sem informações</p>
+        <p style="font-size:13px;color:var(--c-text-3);margin-bottom:16px">Adicione descrição e contexto do evento</p>
+        <button class="hub-add-btn" onclick="openHubEditModal()" style="padding:9px 20px;border-radius:10px"><i class="fas fa-pen" style="font-size:10px"></i>Preencher</button>
       </div>
-    </div>` : ''}
-  </div>
+    </section>` : '')}
 
-  <!-- ══ STATS ROW ══ -->
-  <div class="hub-section" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px">
-    ${[
-      { accent:hex,      label:'Leads captados',     val:leadCount, sub: meta ? `${pct}% da meta` : 'total', icon:'fa-users' },
-      { accent:'#059669',label:'Reuniões realizadas', val:realizadas, sub: leadCount ? Math.round(realizadas/leadCount*100)+'% conv.' : '—', icon:'fa-handshake' },
-      { accent:'#d97706',label:'Agendadas',           val:agendadas,  sub:'pendentes', icon:'fa-calendar' },
-      { accent:'#6d28d9',label:'Novos leads',         val:novos,      sub:'sem contato', icon:'fa-user-plus' },
-    ].map(s => `
-      <div class="hub-stat-card">
-        <div style="position:absolute;top:0;left:0;width:100%;height:3px;background:${s.accent}"></div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-          <span class="hub-label">${s.label}</span>
-          <div style="width:28px;height:28px;border-radius:8px;background:${s.accent}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="fas ${s.icon}" style="font-size:11px;color:${s.accent}"></i>
-          </div>
+    <!-- Documentos -->
+    <section class="hub-anim hub-anim-4">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h2 class="hub-section-title">Documentos</h2>
+          ${docs.length ? `<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:${ra(.1)};color:${hex}">${docs.length}</span>` : ''}
         </div>
-        <div style="font-size:32px;font-weight:900;line-height:1;margin-bottom:5px;letter-spacing:-.02em">${s.val}</div>
-        <div style="font-size:11px;color:var(--c-text-3);font-weight:500">${s.sub}</div>
-      </div>`).join('')}
-  </div>
-
-  <!-- ══ MAIN 2-COL ══ -->
-  <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
-
-    <!-- LEFT -->
-    <div style="display:flex;flex-direction:column;gap:28px">
-
-      <!-- About -->
-      ${hubData.desc || hubData.perfil ? `
-      <section class="hub-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <h2 class="hub-section-title">Sobre o evento</h2>
-          ${isAdmin ? `<button class="hub-add-btn" onclick="openHubEditModal()"><i class="fas fa-pen" style="font-size:10px"></i>Editar</button>` : ''}
+        ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubDocAdd()"><i class="fas fa-plus" style="font-size:10px"></i>Adicionar</button>` : ''}
+      </div>
+      <div id="hub-doc-add-row" style="display:none;background:var(--c-bg);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--c-border)">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px">
+          <input type="text" id="hub-doc-name" class="form-input text-sm" placeholder="Nome do documento">
+          <select id="hub-doc-type" class="form-input text-sm">
+            <option value="apresentacao">📊 Apresentação</option>
+            <option value="proposta">📄 Proposta</option>
+            <option value="contrato">📋 Contrato</option>
+            <option value="roteiro">🗒️ Roteiro</option>
+            <option value="planilha">📈 Planilha</option>
+            <option value="outro">📁 Outro</option>
+          </select>
         </div>
-        ${hubData.desc ? `<p style="font-size:15px;color:var(--c-text-2);line-height:1.8;margin-bottom:${hubData.perfil?'20px':'0'}">${hubData.desc}</p>` : ''}
-        ${hubData.perfil ? `
-        <div style="display:flex;gap:14px;padding:16px 20px;background:${rgba(.06)};border-left:3px solid ${hex};border-radius:0 12px 12px 0;margin-top:4px">
-          <i class="fas fa-crosshairs" style="color:${hex};margin-top:3px;flex-shrink:0;font-size:14px"></i>
-          <div>
-            <div class="hub-label" style="margin-bottom:5px">Público-alvo</div>
-            <p style="font-size:14px;color:var(--c-text-2);line-height:1.65;margin:0">${hubData.perfil}</p>
-          </div>
-        </div>` : ''}
-      </section>` : (isAdmin ? `
-      <section class="hub-section">
-        <div style="padding:40px 32px;border:2px dashed var(--c-border);border-radius:18px;text-align:center">
-          <div style="font-size:40px;margin-bottom:10px;opacity:.25">📋</div>
-          <p style="font-size:14px;font-weight:600;color:var(--c-text);margin-bottom:4px">Sem descrição</p>
-          <p style="font-size:13px;color:var(--c-text-3);margin-bottom:16px">Adicione informações sobre este evento para a equipe</p>
-          <button class="hub-add-btn" onclick="openHubEditModal()" style="padding:9px 20px;border-radius:10px"><i class="fas fa-pen" style="font-size:10px"></i>Preencher informações</button>
-        </div>
-      </section>` : '')}
-
-      <!-- Documents -->
-      <section class="hub-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <h2 class="hub-section-title">Documentos</h2>
-            ${docs.length ? `<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:${rgba(.1)};color:${hex}">${docs.length}</span>` : ''}
-          </div>
-          ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubDocAdd()"><i class="fas fa-plus" style="font-size:10px"></i>Adicionar</button>` : ''}
-        </div>
-        <!-- Add form -->
-        <div id="hub-doc-add-row" style="display:none;background:var(--c-bg);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--c-border)">
-          <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px">
-            <input type="text" id="hub-doc-name" class="form-input text-sm" placeholder="Nome do documento">
-            <select id="hub-doc-type" class="form-input text-sm">
-              <option value="apresentacao">📊 Apresentação</option>
-              <option value="proposta">📄 Proposta</option>
-              <option value="contrato">📋 Contrato</option>
-              <option value="roteiro">🗒️ Roteiro</option>
-              <option value="planilha">📈 Planilha</option>
-              <option value="outro">📁 Outro</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px">
-            <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Drive, SharePoint, Notion...)">
-            <button onclick="addHubDoc()" class="btn btn-primary text-sm"><i class="fas fa-check"></i>Salvar</button>
-            <button onclick="toggleHubDocAdd()" class="btn btn-secondary text-sm">Cancelar</button>
-          </div>
-        </div>
-        ${docs.length ? `
-        <div id="hub-doc-list" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          ${renderHubDocsHTML(docs, isAdmin, hex)}
-        </div>` : `
-        <div id="hub-doc-list">
-          <div style="padding:36px 24px;text-align:center;background:var(--c-bg);border-radius:16px;border:1px dashed var(--c-border)">
-            <div style="font-size:32px;margin-bottom:8px;opacity:.25">📁</div>
-            <p style="font-size:13px;color:var(--c-text-3)">${isAdmin ? 'Nenhum documento. Clique em Adicionar.' : 'Nenhum documento adicionado.'}</p>
-          </div>
-        </div>`}
-      </section>
-
-      <!-- Notes -->
-      <section class="hub-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <h2 class="hub-section-title">Notas da equipe</h2>
-          ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubNotasEdit()"><i class="fas fa-pen" style="font-size:10px"></i>Editar</button>` : ''}
-        </div>
-        <div id="hub-notas-display">
-          ${hubData.notas
-            ? `<div style="background:var(--c-bg);border-radius:16px;padding:22px 26px;border-left:4px solid #6d28d9;position:relative">
-                <i class="fas fa-quote-left" style="position:absolute;top:16px;right:18px;font-size:28px;opacity:.06;color:var(--c-text)"></i>
-                <p style="font-size:14px;color:var(--c-text-2);line-height:1.8;white-space:pre-wrap;margin:0">${hubData.notas}</p>
-               </div>`
-            : `<div style="padding:28px 24px;text-align:center;background:var(--c-bg);border-radius:16px;border:1px dashed var(--c-border)">
-                <div style="font-size:28px;margin-bottom:6px;opacity:.25">📝</div>
-                <p style="font-size:13px;color:var(--c-text-3)">${isAdmin ? 'Sem notas. Clique em Editar para adicionar.' : 'Sem notas.'}</p>
-               </div>`}
-        </div>
-        <div id="hub-notas-edit" style="display:none">
-          <textarea id="hub-notas" class="form-input" rows="6" style="border-radius:14px;font-size:14px;line-height:1.7" placeholder="Briefing, instruções, dress code, logística, pontos de atenção...">${hubData.notas||''}</textarea>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button onclick="saveHubNotas()" class="btn btn-primary text-sm"><i class="fas fa-save"></i>Salvar notas</button>
-            <button onclick="toggleHubNotasEdit()" class="btn btn-secondary text-sm">Cancelar</button>
-          </div>
-        </div>
-      </section>
-
-    </div><!-- /left -->
-
-    <!-- RIGHT SIDEBAR -->
-    <div style="position:sticky;top:16px;display:flex;flex-direction:column;gap:16px">
-
-      <!-- QR CARD -->
-      <div class="hub-section" style="background:linear-gradient(145deg,${hex},${rgba(.8)});border-radius:20px;padding:22px;text-align:center;overflow:hidden;position:relative">
-        <svg style="position:absolute;right:-20px;bottom:-20px;opacity:.08;width:120px;height:120px" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 3h3m-3-3h3m-3-6h3"/></svg>
-        <div class="hub-label" style="color:rgba(255,255,255,.65);margin-bottom:6px">Cadastro público</div>
-        <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:16px">Formulário via QR</div>
-        <div id="hub-qr-display" style="display:flex;justify-content:center;margin-bottom:16px;padding:14px;background:white;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)"></div>
-        <p style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:14px;line-height:1.5">Visitantes escaneiam e se cadastram sem precisar de login</p>
         <div style="display:flex;gap:8px">
-          <button onclick="navigator.clipboard.writeText('${qrUrl}');showToast('Link copiado!')"
-            style="flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s"
-            onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
-            <i class="fas fa-copy" style="margin-right:4px"></i>Copiar link
-          </button>
-          <button id="hub-qr-dl"
-            style="flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s"
-            onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
-            <i class="fas fa-download" style="margin-right:4px"></i>Baixar QR
-          </button>
+          <input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Drive, SharePoint, Notion...)">
+          <button onclick="addHubDoc()" class="btn btn-primary text-sm"><i class="fas fa-check"></i>Salvar</button>
+          <button onclick="toggleHubDocAdd()" class="btn btn-secondary text-sm">Cancelar</button>
         </div>
       </div>
-
-      <!-- LINKS -->
-      <div class="hub-section" style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:18px;overflow:hidden">
-        <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:#059669"></div>
-            <span style="font-size:14px;font-weight:800">Links rápidos</span>
-            ${links.length ? `<span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:99px;background:#05966918;color:#059669">${links.length}</span>` : ''}
-          </div>
-          ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubLinkAdd()" style="padding:4px 10px;font-size:11px"><i class="fas fa-plus" style="font-size:9px"></i>Add</button>` : ''}
-        </div>
-        <div id="hub-link-add-row" style="display:none;padding:12px 18px;background:var(--c-bg);border-top:1px solid var(--c-border)">
-          <input type="text" id="hub-link-label" class="form-input text-sm mb-2" placeholder="Nome do link">
-          <div style="display:flex;gap:6px">
-            <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
-            <button onclick="addHubLink()" class="btn btn-primary text-sm px-3"><i class="fas fa-check"></i></button>
-          </div>
-        </div>
-        <div id="hub-link-list" style="padding:${links.length?'4px 8px 10px':'0'}">
-          ${renderHubLinksHTML(links, isAdmin)}
-        </div>
-        ${!links.length ? `<div style="padding:18px 18px;text-align:center"><p style="font-size:12px;color:var(--c-text-3)">${isAdmin?'Nenhum link. Clique em Add.':'Nenhum link.'}</p></div>` : ''}
-      </div>
-
-      <!-- CHECKLIST -->
-      <div class="hub-section" style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:18px;overflow:hidden">
-        <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:#6d28d9"></div>
-            <span style="font-size:14px;font-weight:800">Checklist</span>
-          </div>
-          <span id="hub-check-progress" style="font-size:12px;font-weight:700;color:${checks.length ? (doneChecks===checks.length?'#059669':'var(--c-text-3)') : 'var(--c-text-3)'}">
-            ${checks.length ? `${doneChecks}/${checks.length}` : ''}
-          </span>
-        </div>
-        ${checks.length ? `
-        <div style="padding:4px 10px 10px" id="hub-checklist"></div>` : `
-        <div id="hub-checklist" style="padding:18px 18px;text-align:center">
-          <p style="font-size:12px;color:var(--c-text-3)">${isAdmin?'Nenhum item. Adicione abaixo.':'Nenhum item.'}</p>
+      <div id="hub-doc-list" style="${docs.length?'display:grid;grid-template-columns:1fr 1fr;gap:12px':''}">
+        ${docs.length ? renderHubDocsHTML(docs, isAdmin, hex) : `
+        <div style="padding:36px 24px;text-align:center;background:var(--c-bg);border-radius:16px;border:1px dashed var(--c-border)">
+          <div style="font-size:32px;margin-bottom:8px;opacity:.2">📁</div>
+          <p style="font-size:13px;color:var(--c-text-3)">${isAdmin?'Nenhum documento. Clique em Adicionar.':'Nenhum documento adicionado.'}</p>
         </div>`}
-        ${isAdmin ? `
-        <div style="padding:0 18px 14px;display:flex;gap:6px;border-top:1px solid var(--c-border);padding-top:10px">
-          <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item..."
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
-          <button onclick="addHubCheckItem()" class="btn btn-secondary text-sm px-3" style="flex-shrink:0"><i class="fas fa-plus"></i></button>
-        </div>` : ''}
       </div>
+    </section>
 
-    </div><!-- /right -->
-  </div><!-- /grid -->
-</div><!-- /hub-lp -->`;
+    <!-- Notas -->
+    <section class="hub-anim hub-anim-5">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 class="hub-section-title">Notas da equipe</h2>
+        ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubNotasEdit()"><i class="fas fa-pen" style="font-size:10px"></i>Editar</button>` : ''}
+      </div>
+      <div id="hub-notas-display">
+        ${hubData.notas
+          ? `<div style="background:var(--c-bg);border-radius:16px;padding:24px 28px;border-left:3px solid #6d28d9;position:relative;overflow:hidden">
+               <i class="fas fa-quote-left" style="position:absolute;top:12px;right:16px;font-size:52px;opacity:.04;color:var(--c-text);pointer-events:none"></i>
+               <p style="font-size:14px;color:var(--c-text-2);line-height:1.85;white-space:pre-wrap;margin:0;position:relative">${hubData.notas}</p>
+             </div>`
+          : `<div style="padding:28px 24px;text-align:center;background:var(--c-bg);border-radius:16px;border:1px dashed var(--c-border)">
+               <div style="font-size:28px;margin-bottom:6px;opacity:.2">📝</div>
+               <p style="font-size:13px;color:var(--c-text-3)">${isAdmin?'Sem notas. Clique em Editar.':'Sem notas adicionadas.'}</p>
+             </div>`}
+      </div>
+      <div id="hub-notas-edit" style="display:none">
+        <textarea id="hub-notas" class="form-input" rows="6" style="border-radius:14px;font-size:14px;line-height:1.75" placeholder="Briefing, instruções para a equipe, pontos de atenção...">${hubData.notas||''}</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="saveHubNotas()" class="btn btn-primary text-sm"><i class="fas fa-save"></i>Salvar</button>
+          <button onclick="toggleHubNotasEdit()" class="btn btn-secondary text-sm">Cancelar</button>
+        </div>
+      </div>
+    </section>
 
-    // QR Code
-    setTimeout(() => {
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div style="position:sticky;top:16px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- QR -->
+    <div class="hub-anim hub-anim-3" style="border-radius:20px;overflow:hidden;background:linear-gradient(145deg,${hex},${ra(.75)});padding:22px;text-align:center;position:relative">
+      <div style="position:absolute;bottom:-16px;right:-16px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.07)"></div>
+      <div style="position:absolute;bottom:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+      <div class="hub-label" style="color:rgba(255,255,255,.6);margin-bottom:5px">Cadastro público</div>
+      <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:16px">Formulário QR Code</div>
+      <div id="hub-qr-display" style="display:flex;justify-content:center;margin-bottom:14px;padding:14px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.18)"></div>
+      <p style="font-size:11px;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.5">Visitantes escaneiam e se cadastram sem login</p>
+      <div style="display:flex;gap:8px">
+        <button class="hub-qr-action" onclick="navigator.clipboard.writeText('${qrUrl}');showToast('Link copiado!')"><i class="fas fa-copy" style="margin-right:5px"></i>Copiar</button>
+        <button class="hub-qr-action" id="hub-qr-dl"><i class="fas fa-download" style="margin-right:5px"></i>Baixar</button>
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div class="hub-anim hub-anim-4" style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:18px;overflow:hidden">
+      <div style="padding:15px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#059669"></div>
+          <span style="font-size:14px;font-weight:800">Links rápidos</span>
+          ${links.length ? `<span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:99px;background:#05966916;color:#059669">${links.length}</span>` : ''}
+        </div>
+        ${isAdmin ? `<button class="hub-add-btn" onclick="toggleHubLinkAdd()" style="padding:4px 10px;font-size:11px"><i class="fas fa-plus" style="font-size:9px"></i>Add</button>` : ''}
+      </div>
+      <div id="hub-link-add-row" style="display:none;padding:12px 18px;background:var(--c-bg);border-bottom:1px solid var(--c-border)">
+        <input type="text" id="hub-link-label" class="form-input text-sm mb-2" placeholder="Nome do link">
+        <div style="display:flex;gap:6px">
+          <input type="url" id="hub-link-url" class="form-input text-sm flex-1" placeholder="https://...">
+          <button onclick="addHubLink()" class="btn btn-primary text-sm px-3"><i class="fas fa-check"></i></button>
+        </div>
+      </div>
+      <div id="hub-link-list" style="padding:${links.length?'4px 10px 12px':'0'}">
+        ${renderHubLinksHTML(links, isAdmin)}
+      </div>
+      ${!links.length ? `<div style="padding:16px 18px;text-align:center"><p style="font-size:12px;color:var(--c-text-3)">${isAdmin?'Clique em Add para começar.':'Nenhum link.'}</p></div>` : ''}
+    </div>
+
+    <!-- Checklist -->
+    <div class="hub-anim hub-anim-5" style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:18px;overflow:hidden">
+      <div style="padding:15px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#6d28d9"></div>
+          <span style="font-size:14px;font-weight:800">Checklist pré-evento</span>
+        </div>
+        <span id="hub-check-progress" style="font-size:11px;font-weight:700;color:var(--c-text-3)"></span>
+      </div>
+      <div style="padding:6px 10px 10px"><div id="hub-checklist"></div></div>
+      ${isAdmin ? `
+      <div style="padding:0 14px 14px;display:flex;gap:6px">
+        <input type="text" id="hub-check-input" class="form-input text-sm flex-1" placeholder="Novo item..."
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addHubCheckItem()}">
+        <button onclick="addHubCheckItem()" class="btn btn-secondary text-sm px-3"><i class="fas fa-plus"></i></button>
+      </div>` : ''}
+    </div>
+
+  </div>
+</div>
+</div>`;
+
+    // Generate QR
+    setTimeout(()=>{
       const qrEl = document.getElementById('hub-qr-display');
-      if (qrEl && !qrEl.querySelector('canvas')) {
-        new QRCode(qrEl, { text: qrUrl, width: 140, height: 140, colorDark: hex, colorLight: '#ffffff' });
-      }
-      const dlBtn = document.getElementById('hub-qr-dl');
-      if (dlBtn) dlBtn.onclick = () => {
-        const c = document.getElementById('hub-qr-display')?.querySelector('canvas');
-        if (c) { const a = document.createElement('a'); a.download = `qr-${ev.name}.png`; a.href = c.toDataURL(); a.click(); }
-      };
-      renderHubChecklist(hubData.checklist || []);
+      if (qrEl && !qrEl.querySelector('canvas'))
+        new QRCode(qrEl,{text:qrUrl,width:140,height:140,colorDark:hex,colorLight:'#ffffff'});
+      const dl = document.getElementById('hub-qr-dl');
+      if (dl) dl.onclick = ()=>{ const c=document.getElementById('hub-qr-display')?.querySelector('canvas'); if(c){const a=document.createElement('a');a.download=`qr-${ev.name}.png`;a.href=c.toDataURL();a.click();}};
+      renderHubChecklist(hubData.checklist||[]);
     }, 60);
 
-  } catch(err) { console.error('Hub error:', err); showToast('Erro ao carregar evento.','error'); }
+  } catch(err){ console.error('Hub error:',err); showToast('Erro ao carregar.','error'); }
 };
 
 // Helper: render docs HTML
