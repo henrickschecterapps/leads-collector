@@ -316,18 +316,14 @@ tr:hover .quick-note{display:block}
 .quick-note-input{background:transparent;border:none;outline:none;width:100%;font-family:inherit;font-size:12px;color:var(--c-text);padding:0}
 .quick-note-input:focus{border-bottom:1px solid var(--c-brand)}
 
-/* ── Mobile bottom nav ── */
+/* ── Mobile navigation ── */
+/* Bottom nav: hidden everywhere (replaced by drawer) */
+.mobile-nav{display:none!important}
+/* Desktop tabs: visible only on desktop */
 @media(max-width:640px){
-  .mobile-nav{position:fixed;bottom:0;left:0;right:0;background:var(--c-surface);border-top:1px solid var(--c-border);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
-  .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;font-size:9px;font-weight:700;color:var(--c-text-3);cursor:pointer;transition:color var(--transition)}
-  .mobile-nav-item.active{color:var(--c-brand)}
-  .mobile-nav-item i{font-size:18px}
-  .app-main{padding-bottom:70px!important}
-  .desktop-tabs{display:none}
+  .desktop-tabs{display:none!important}
   .sidenav{display:none!important}
-}
-@media(min-width:641px){
-  .mobile-nav{display:none}
+  .app-main{padding-bottom:16px!important}
 }
 
 /* ── Hub visibility ── */
@@ -414,15 +410,12 @@ tr:hover .quick-note{display:block}
 .mob-drawer-user-av{width:36px;height:36px;border-radius:10px;background:var(--c-brand);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0}
 .mob-drawer-user-name{font-size:13px;font-weight:700;color:var(--c-text)}
 .mob-drawer-user-role{font-size:11px;color:var(--c-text-3)}
-.mob-ham{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--c-border);background:transparent;cursor:pointer;flex-shrink:0;transition:all .15s}
+.mob-ham{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--c-border);background:transparent;cursor:pointer;flex-shrink:0;transition:all .15s}
 .mob-ham:hover{background:var(--c-bg)}
+@media(min-width:641px){ .mob-ham{display:none!important} }
+
 .mob-ham svg{width:18px;height:18px;stroke:var(--c-text-2);fill:none;stroke-width:2;stroke-linecap:round}
-@media(max-width:640px){
-  .mob-ham{display:flex}
-  .desktop-tabs{display:none!important}
-  .mobile-nav{display:none!important}
-  .sidenav{display:none!important}
-}
+
 
 /* ═══════════════════════════════════
    RESPONSIVE — Mobile First Fixes
@@ -430,7 +423,7 @@ tr:hover .quick-note{display:block}
 @media (max-width: 640px) {
 
   /* ── App layout ── */
-  .app-main { padding: 12px 12px 80px !important; }
+  .app-main { padding: 12px 12px 16px !important; }
 
   /* ── Header ── */
   .sticky-header > div { padding: 0 12px !important; }
