@@ -373,6 +373,93 @@ tr:hover .quick-note{display:block}
 .ha{animation:hepUp .38s ease both}
 .ha2{animation-delay:.06s}.ha3{animation-delay:.12s}.ha4{animation-delay:.18s}
 
+
+/* ── Hub event page responsive ── */
+.hep-layout { display: grid; grid-template-columns: 1fr 260px; gap: 36px; align-items: start; }
+.hep-metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+.hep-doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 900px) {
+  .hep-layout { grid-template-columns: 1fr; }
+  .hep-sidebar { position: static !important; }
+  .hep-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .hep-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .hep-doc-grid { grid-template-columns: 1fr; }
+  .hep-hero h1 { font-size: 24px !important; }
+  .hep-hero { padding: 20px 18px 18px !important; }
+  .hep-back { margin-bottom: 16px; }
+  .hep-metric-val { font-size: 26px !important; }
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE — Mobile First Fixes
+   ═══════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* ── App layout ── */
+  .app-main { padding: 12px 12px 80px !important; }
+
+  /* ── Header ── */
+  .sticky-header > div { padding: 0 12px !important; }
+
+  /* ── Toast: full width on mobile ── */
+  .toast { bottom: 80px; right: 12px; left: 12px; max-width: none; }
+
+  /* ── Modals: full-screen on mobile ── */
+  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal-box { border-radius: 20px 20px 0 0 !important; max-height: 92vh; overflow-y: auto; width: 100% !important; max-width: 100% !important; }
+  .modal-box-xl { max-width: 100% !important; }
+
+  /* ── Dashboard KPIs: 2 col ── */
+  #dash-kpis { grid-template-columns: 1fr 1fr !important; }
+  .kpi-value { font-size: 22px !important; }
+
+  /* ── Registros stats: 2x2 ── */
+  #registros-stats { grid-template-columns: 1fr 1fr !important; }
+
+  /* ── Analytics KPIs ── */
+  #analytics-kpis { grid-template-columns: 1fr 1fr !important; }
+
+  /* ── Admin grids ── */
+  .grid-cols-3-admin { grid-template-columns: 1fr !important; }
+
+  /* ── Table: hide some cols ── */
+  .data-table th:nth-child(3),
+  .data-table td:nth-child(3),
+  .data-table th:nth-child(5),
+  .data-table td:nth-child(5) { display: none; }
+
+  /* ── Hub event page ── */
+  .hep-hero-title { font-size: 26px !important; }
+}
+
+/* ── Hub page responsive — done via JS but add CSS overrides ── */
+@media (max-width: 768px) {
+  .app-main { padding: 14px 14px 80px !important; }
+  .kpi-card { padding: 12px 14px !important; }
+  .modal-box { max-width: 95vw !important; }
+}
+
+
+@media (max-width: 540px) {
+  /* Edit modal qualification grid → 1 col */
+  #editClientForm .grid { grid-template-columns: 1fr !important; }
+  /* KPI sparkline hidden on small screens */
+  .kpi-sparkline { display: none; }
+  /* Reduce modal padding */
+  .modal-box .p-6 { padding: 16px !important; }
+  /* Hub metrics: 2-col even on very small */
+  .hep-metrics-grid > div { padding: 14px 16px !important; }
+  .hep-metric-val { font-size: 24px !important; }
+  /* Registros filter sidebar full width */
+  #filter-sidebar { width: 100% !important; max-width: 100% !important; }
+  /* Agenda calendar cells smaller */
+  .calendar-cell { min-height: 48px !important; }
+  /* Tab content padding */
+  #tab-cadastro-content .max-w-2xl { max-width: 100% !important; }
+}
+
 /* ── Dark input calendar fix ── */
 .dark input[type="date"]::-webkit-calendar-picker-indicator,.dark input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1)}
 
@@ -1024,7 +1111,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
           <div class="relative w-56"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color:var(--c-text-3)"></i><input type="text" id="userSearchInput" class="form-input pl-9 text-sm" placeholder="Buscar usuário..."></div>
         </div>
         <div class="card"><h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--c-amber)"><i class="fas fa-clock"></i>Aguardando Aprovação<span id="pending-count" class="badge badge-amber"></span></h3>
-          <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th class="text-right">Ações</th></tr></thead><tbody id="pendingUserTableBody"></tbody></table></div></div>
+          <div class="overflow-x-auto" style="-webkit-overflow-scrolling:touch"><table class="data-table" style="min-width:580px"><thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th class="text-right">Ações</th></tr></thead><tbody id="pendingUserTableBody"></tbody></table></div></div>
         <div class="card"><h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--c-green)"><i class="fas fa-check-circle"></i>Usuários Ativos</h3>
           <div class="overflow-x-auto"><table class="data-table"><thead id="approvedUsersThead"><tr><th class="sortable" data-sort="nome">Nome <span class="sort-icon ml-1" style="color:var(--c-border)">↕</span></th><th>E-mail</th><th>Cargo</th><th class="text-right">Ações</th></tr></thead><tbody id="approvedUserTableBody"></tbody></table></div></div>
         <div class="card"><h3 class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--c-text-3)"><i class="fas fa-user-slash"></i>Desativados</h3>
@@ -3653,7 +3740,7 @@ window.openEventHub = async (eventId, eventName) => {
     // The event color fills a tall banner. Title is huge. Info floats below.
     H.push('<div class="ha" style="border-radius:20px;overflow:hidden;margin-bottom:0;background:'+hex+'">');
     // Crosshatch texture
-    H.push('<div style="position:relative;padding:32px 36px 28px">');
+    H.push('<div class="hep-hero" style="position:relative;padding:32px 36px 28px">');
     H.push('<div style="position:absolute;inset:0;opacity:.05;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:10px 10px"></div>');
     // Top: status pill + edit
     H.push('<div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px">');
@@ -3665,7 +3752,7 @@ window.openEventHub = async (eventId, eventName) => {
     if(isAdmin) H.push('<button class="hep-edit-btn" onclick="openHubEditModal()"><svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar evento</button>');
     H.push('</div>');
     // Giant title
-    H.push('<h1 style="font-size:clamp(26px,4vw,48px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.035em;margin:0 0 18px;position:relative">'+ev.name+'</h1>');
+    H.push('<h1 class="hep-hero-title" style="font-size:clamp(22px,4vw,48px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.035em;margin:0 0 18px;position:relative">'+ev.name+'</h1>');
     // Meta info: inline text, no boxes
     const metas = [];
     if(ev.startDate) metas.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;opacity:.6" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+fd(ev.startDate)+' — '+fd(ev.endDate)+'</span>');
@@ -3673,11 +3760,11 @@ window.openEventHub = async (eventId, eventName) => {
     if(hubData.resp)   metas.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;opacity:.6" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'+hubData.resp+'</span>');
     if(hubData.stand)  metas.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;opacity:.6" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>'+hubData.stand+'</span>');
     if(hubData.budget) metas.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;opacity:.6" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'+hubData.budget+'</span>');
-    if(metas.length) H.push('<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.65);position:relative">'+metas.join('<span style="opacity:.25">·</span>')+'</div>');
+    if(metas.length) H.push('<div style="display:flex;flex-wrap:wrap;gap:10px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.65);position:relative">'+metas.join('<span style="opacity:.25">·</span>')+'</div>');
     H.push('</div></div>'); // inner + hero
 
     // ══ METRICS STRIP: attached to hero bottom, blends in ══
-    H.push('<div style="display:grid;grid-template-columns:repeat(4,1fr);background:'+ra(.08)+';border:1px solid '+ra(.12)+';border-top:none;border-radius:0 0 20px 20px;margin-bottom:32px;overflow:hidden">');
+    H.push('<div class="hep-metrics-grid" style="background:'+ra(.08)+';border:1px solid '+ra(.12)+';border-top:none;border-radius:0 0 20px 20px;margin-bottom:32px;overflow:hidden">');
     const metrics=[
       {val:total,     lbl:'Leads captados',      note:pct?pct+'% da meta':'total',           clr:hex},
       {val:real,      lbl:'Reuniões realizadas',  note:total?Math.round(real/total*100)+'% conv.':'—', clr:'#059669'},
@@ -3685,7 +3772,7 @@ window.openEventHub = async (eventId, eventName) => {
       {val:doneN+'/'+checks.length, lbl:'Checklist', note:checks.length?Math.round(doneN/Math.max(checks.length,1)*100)+'% ok':'—', clr:'#6d28d9'},
     ];
     metrics.forEach((m,i)=>{
-      H.push('<div style="padding:18px 22px'+(i>0?';border-left:1px solid '+ra(.12):'')+'">');
+      H.push('<div style="padding:18px 22px;'+(i%2>0&&window.innerWidth>560?'border-left:1px solid '+ra(.12)+';':'')+'">');
       H.push('<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:'+ra(.5)+';margin-bottom:8px">'+m.lbl+'</div>');
       H.push('<div style="font-size:32px;font-weight:900;letter-spacing:-.04em;color:'+hex+';line-height:1;margin-bottom:4px">'+m.val+'</div>');
       H.push('<div style="font-size:11px;font-weight:600;color:'+m.clr+'">'+m.note+'</div>');
@@ -3707,7 +3794,7 @@ window.openEventHub = async (eventId, eventName) => {
     }
 
     // ══ MAIN LAYOUT ══
-    H.push('<div class="ha ha3" style="display:grid;grid-template-columns:1fr 260px;gap:36px;align-items:start">');
+    H.push('<div class="ha ha3" class="hep-layout">');
 
     // ── LEFT ──
     H.push('<div style="min-width:0;display:flex;flex-direction:column;gap:36px">');
@@ -3746,7 +3833,7 @@ window.openEventHub = async (eventId, eventName) => {
     H.push('<div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px"><input type="text" id="hub-doc-name" class="form-input text-sm" placeholder="Nome do documento"><select id="hub-doc-type" class="form-input text-sm"><option value="apresentacao">📊 Apresentação</option><option value="proposta">📄 Proposta</option><option value="contrato">📋 Contrato</option><option value="roteiro">🗒️ Roteiro</option><option value="planilha">📈 Planilha</option><option value="outro">📁 Outro</option></select></div>');
     H.push('<div style="display:flex;gap:8px"><input type="url" id="hub-doc-url" class="form-input text-sm flex-1" placeholder="URL (Drive, SharePoint...)"><button onclick="addHubDoc()" class="btn btn-primary text-sm"><i class="fas fa-check"></i>Salvar</button><button onclick="toggleHubDocAdd()" class="btn btn-secondary text-sm">✕</button></div>');
     H.push('</div>');
-    H.push('<div id="hub-doc-list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">');
+    H.push('<div id="hub-doc-list" class="hep-doc-grid">');
     H.push(docs.length ? renderHubDocsHTML(docs,isAdmin,hex) : '<div style="grid-column:1/-1;padding:28px;text-align:center;background:var(--c-bg);border-radius:12px;border:1px dashed var(--c-border)"><p style="font-size:13px;color:var(--c-text-3)">'+(isAdmin?'Nenhum documento. Clique em Adicionar.':'Nenhum documento.')+'</p></div>');
     H.push('</div></section>');
 
@@ -3767,7 +3854,7 @@ window.openEventHub = async (eventId, eventName) => {
     H.push('</div>'); // left
 
     // ── SIDEBAR ──
-    H.push('<div class="ha ha4" style="position:sticky;top:16px;display:flex;flex-direction:column;gap:20px">');
+    H.push('<div class="ha ha4" class="hep-sidebar" style="position:sticky;top:16px;display:flex;flex-direction:column;gap:20px">');
 
     // QR: color-accent top, white body
     H.push('<div style="border-radius:16px;overflow:hidden;border:1px solid var(--c-border)">');
