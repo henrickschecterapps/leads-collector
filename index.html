@@ -392,6 +392,38 @@ tr:hover .quick-note{display:block}
   .hep-metric-val { font-size: 26px !important; }
 }
 
+
+/* ── Mobile Drawer Nav ── */
+.mob-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s ease;backdrop-filter:blur(2px)}
+.mob-drawer-overlay.open{opacity:1;pointer-events:all}
+.mob-drawer{position:fixed;top:0;left:0;bottom:0;width:272px;background:var(--c-surface);z-index:101;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,.12)}
+.mob-drawer.open{transform:translateX(0)}
+.mob-drawer-head{padding:18px 20px 14px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:12px}
+.mob-drawer-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0070c0,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mob-drawer-title{font-size:15px;font-weight:800;color:var(--c-text)}
+.mob-drawer-sub{font-size:11px;color:var(--c-text-3);margin-top:1px}
+.mob-drawer-body{flex:1;overflow-y:auto;padding:10px 0}
+.mob-drawer-item{display:flex;align-items:center;gap:13px;padding:12px 20px;font-size:14px;font-weight:600;color:var(--c-text-2);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;font-family:inherit;position:relative}
+.mob-drawer-item:hover{background:var(--c-bg);color:var(--c-text)}
+.mob-drawer-item.active{color:var(--c-brand);background:var(--c-brand-dim)}
+.mob-drawer-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--c-brand);border-radius:0 3px 3px 0}
+.mob-drawer-item i{width:20px;text-align:center;font-size:15px;flex-shrink:0}
+.mob-drawer-divider{height:1px;background:var(--c-border);margin:8px 20px}
+.mob-drawer-foot{padding:14px 20px;border-top:1px solid var(--c-border);display:flex;flex-direction:column;gap:8px}
+.mob-drawer-user{display:flex;align-items:center;gap:10px}
+.mob-drawer-user-av{width:36px;height:36px;border-radius:10px;background:var(--c-brand);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0}
+.mob-drawer-user-name{font-size:13px;font-weight:700;color:var(--c-text)}
+.mob-drawer-user-role{font-size:11px;color:var(--c-text-3)}
+.mob-ham{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--c-border);background:transparent;cursor:pointer;flex-shrink:0;transition:all .15s}
+.mob-ham:hover{background:var(--c-bg)}
+.mob-ham svg{width:18px;height:18px;stroke:var(--c-text-2);fill:none;stroke-width:2;stroke-linecap:round}
+@media(max-width:640px){
+  .mob-ham{display:flex}
+  .desktop-tabs{display:none!important}
+  .mobile-nav{display:none!important}
+  .sidenav{display:none!important}
+}
+
 /* ═══════════════════════════════════
    RESPONSIVE — Mobile First Fixes
    ═══════════════════════════════════ */
@@ -569,8 +601,11 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
   <!-- Header -->
   <header class="sticky-header" style="background:var(--c-surface);border-bottom:1px solid var(--c-border);height:52px;display:flex;align-items:center;z-index:20">
     <div style="width:100%;max-width:100%;padding:0 16px;display:flex;align-items:center;justify-content:space-between">
-      <!-- Logo -->
+      <!-- Logo + hamburger (mobile) -->
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <button class="mob-ham" id="mob-ham-btn" onclick="openMobDrawer()" aria-label="Menu">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#0070c0,#3b82f6);display:flex;align-items:center;justify-content:center">
           <i class="fas fa-bolt" style="color:white;font-size:13px"></i>
         </div>
@@ -1623,6 +1658,9 @@ function switchTab(target){
       }
     }
     if(mItem)mItem.classList.toggle('active',t===target);
+    // Sync mobile drawer
+    const dItem=document.querySelector(`.mob-drawer-item[data-tab="${t}"]`);
+    if(dItem)dItem.classList.toggle('active',t===target);
   });
   if(target==='dashboard')renderDashboard();
   if(target==='registros'){clientSort={key:'createdAt',dir:'desc'};handleFilterChange();}
@@ -1731,6 +1769,7 @@ onAuthStateChanged(auth, async user => {
       const _ac = document.getElementById('app-container');
       _ac.classList.remove('hidden');
       _ac.style.display = 'flex';
+      setTimeout(updateMobDrawer, 100);
       clientesRef = collection(db, 'clientes');
       eventosRef = collection(db, 'eventos');
       usersRef = collection(db, 'users');
@@ -4289,6 +4328,58 @@ document.getElementById('createUserForm').addEventListener('submit', async e => 
   }
 });
 
+
+// ── Mobile Drawer ─────────────────────────────────────────
+window.openMobDrawer = () => {
+  document.getElementById('mob-drawer').classList.add('open');
+  document.getElementById('mob-drawer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeMobDrawer = () => {
+  document.getElementById('mob-drawer').classList.remove('open');
+  document.getElementById('mob-drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+window.mobNavTo = (tab) => {
+  switchTab(tab);
+  closeMobDrawer();
+};
+
+// Sync drawer active state when tab changes
+
+// Drawer active state is synced inside switchTab directly
+
+// Update drawer user info when auth loads
+function updateMobDrawer() {
+  if (!currentUserData) return;
+  const name  = (currentUserData.nome || '') + ' ' + (currentUserData.sobrenome || '');
+  const initials = ((currentUserData.nome||'')[0]||'') + ((currentUserData.sobrenome||'')[0]||'');
+  const roleLabels = {admin:'Administrador',editor:'Editor',vendedor:'Vendedor',sdr:'SDR',comum:'Usuário',parceiro:'Parceiro'};
+  document.getElementById('mob-drawer-name').textContent = name.trim() || '—';
+  document.getElementById('mob-drawer-role').textContent = roleLabels[currentUserRole] || currentUserRole || '—';
+  document.getElementById('mob-drawer-av').textContent = initials.toUpperCase() || '?';
+  document.getElementById('mob-drawer-user-sub').textContent = currentUserData.email || '';
+  // Show admin items
+  const isAdmin = currentUserRole === 'admin';
+  document.querySelectorAll('.mob-drawer-admin').forEach(el => el.classList.toggle('hidden', !isAdmin));
+  // Sync theme icon
+  const dark = document.documentElement.classList.contains('dark');
+  const icon = document.getElementById('mob-theme-icon');
+  if (icon) { icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+}
+
+// Swipe to close drawer
+let _swipeStartX = 0;
+document.getElementById('mob-drawer').addEventListener('touchstart', e => { _swipeStartX = e.touches[0].clientX; }, {passive:true});
+document.getElementById('mob-drawer').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - _swipeStartX;
+  if (dx < -60) closeMobDrawer();
+}, {passive:true});
+
+// Close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobDrawer(); });
+
+
 // ── Init ──────────────────────────────────────────────────
 // Ensure hub detail view is hidden on load
 const _hubDetail = document.getElementById('hub-detail-view');
@@ -4337,6 +4428,62 @@ renderSavedFilters();
           <button type="submit" class="btn btn-primary flex-1 justify-center"><i class="fas fa-user-plus"></i>Criar usuário</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MOBILE DRAWER NAV ══ -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay" onclick="closeMobDrawer()"></div>
+<div class="mob-drawer" id="mob-drawer">
+  <div class="mob-drawer-head">
+    <div class="mob-drawer-logo"><i class="fas fa-bolt" style="color:white;font-size:13px"></i></div>
+    <div>
+      <div class="mob-drawer-title">Leads Collector</div>
+      <div class="mob-drawer-sub" id="mob-drawer-user-sub">Carregando...</div>
+    </div>
+  </div>
+  <div class="mob-drawer-body">
+    <button class="mob-drawer-item active" data-tab="dashboard" onclick="mobNavTo('dashboard')">
+      <i class="fas fa-home"></i>Início
+    </button>
+    <button class="mob-drawer-item" data-tab="cadastro" onclick="mobNavTo('cadastro')">
+      <i class="fas fa-plus-circle"></i>Novo Lead
+    </button>
+    <button class="mob-drawer-item" data-tab="registros" onclick="mobNavTo('registros')">
+      <i class="fas fa-list"></i>Registros
+    </button>
+    <button class="mob-drawer-item" data-tab="agenda" onclick="mobNavTo('agenda')">
+      <i class="fas fa-calendar"></i>Agenda
+    </button>
+    <button class="mob-drawer-item" data-tab="hub" onclick="mobNavTo('hub')">
+      <i class="fas fa-folder-open"></i>Eventos
+    </button>
+    <button class="mob-drawer-item" data-tab="analytics" onclick="mobNavTo('analytics')">
+      <i class="fas fa-chart-pie"></i>Analytics
+    </button>
+    <div class="mob-drawer-divider"></div>
+    <button class="mob-drawer-item mob-drawer-admin hidden" data-tab="admin" onclick="mobNavTo('admin')">
+      <i class="fas fa-cog"></i>Admin
+    </button>
+    <button class="mob-drawer-item mob-drawer-admin hidden" data-tab="usuarios" onclick="mobNavTo('usuarios')">
+      <i class="fas fa-users"></i>Usuários
+    </button>
+  </div>
+  <div class="mob-drawer-foot">
+    <div class="mob-drawer-user">
+      <div class="mob-drawer-user-av" id="mob-drawer-av">?</div>
+      <div>
+        <div class="mob-drawer-user-name" id="mob-drawer-name">—</div>
+        <div class="mob-drawer-user-role" id="mob-drawer-role">—</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="document.getElementById('theme-toggle').click();closeMobDrawer()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--c-border);background:transparent;color:var(--c-text-2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+        <i class="fas fa-moon" id="mob-theme-icon"></i> Tema
+      </button>
+      <button onclick="document.getElementById('logoutButton').click()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--c-border);background:transparent;color:var(--c-red);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
     </div>
   </div>
 </div>
