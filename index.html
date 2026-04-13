@@ -1695,8 +1695,20 @@ document.getElementById('authForm').addEventListener('submit',async e=>{
       if(password.length<6)throw{message:'Senha deve ter 6+ caracteres.'};
       if(password!==cp)throw{message:'Senhas não coincidem.'};
       const cred=await createUserWithEmailAndPassword(auth,email,password);
-      await setDoc(doc(db,'users',cred.user.uid),{email,role:'comum',status:'pending',nome:fn,sobrenome:ln});
+      const newUid = cred.user.uid;
+      const newEmail = cred.user.email;
+      // Desconectar ANTES de gravar o documento para evitar que onAuthStateChanged
+      // dispare com o usuário logado antes do documento existir no Firestore
       await signOut(auth);
+      // Agora salva o documento com segurança (auth já está nulo)
+      await setDoc(doc(db,'users',newUid),{
+        email: newEmail,
+        role: 'comum',
+        status: 'pending',
+        nome: fn,
+        sobrenome: ln,
+        createdAt: new Date()
+      });
       document.getElementById('login-container').classList.add('hidden');
       document.getElementById('registration-success-container').classList.remove('hidden');
     }
