@@ -2608,6 +2608,16 @@ function renderDashboard() {
     }
   }
 
+  // Unassigned
+  const ucEl = document.getElementById('dash-unassigned-count');
+  if (ucEl) ucEl.textContent = unassigned.length || '0';
+  const udEl = document.getElementById('dash-unassigned');
+  if (udEl) udEl.innerHTML = unassigned.slice(0, 6).map(c =>
+    `<div class="flex items-center justify-between p-2 rounded-lg text-xs" style="background:var(--c-bg)">
+      <span class="font-semibold truncate flex-1">${c.name} <span style="color:var(--c-text-3)">— ${c.evento || ''}</span></span>
+      <button onclick="openEditForLead('${c.id}')" class="btn btn-primary text-xs ml-2 flex-shrink-0" style="padding:3px 8px">Atribuir</button>
+    </div>`).join('') || '<p class="text-sm" style="color:var(--c-green)">✓ Todos os leads têm responsável</p>';
+
   renderLeaderboard(data);
 }
 
@@ -2664,16 +2674,7 @@ function renderLeaderboard(leads) {
   }).join('');
 }
 
-  // Unassigned
-  const ucEl = document.getElementById('dash-unassigned-count');
-  if (ucEl) ucEl.textContent = unassigned.length || '0';
-  const udEl = document.getElementById('dash-unassigned');
-  if (udEl) udEl.innerHTML = unassigned.slice(0, 6).map(c =>
-    `<div class="flex items-center justify-between p-2 rounded-lg text-xs" style="background:var(--c-bg)">
-      <span class="font-semibold truncate flex-1">${c.name} <span style="color:var(--c-text-3)">— ${c.evento || ''}</span></span>
-      <button onclick="openEditForLead('${c.id}')" class="btn btn-primary text-xs ml-2 flex-shrink-0" style="padding:3px 8px">Atribuir</button>
-    </div>`).join('') || '<p class="text-sm" style="color:var(--c-green)">✓ Todos os leads têm responsável</p>';
-}
+
 
 window.openMeetingDetail = id => { const c = allClients.find(x => x.id === id); if (c) { populateViewModal(c); document.getElementById('viewLeadModal').classList.remove('hidden'); } };
 window.openEditForLead = id => { const c = allClients.find(x => x.id === id); if (c) { clientToEditId = id; populateEditModal(c); document.getElementById('editModal').classList.remove('hidden'); } };
