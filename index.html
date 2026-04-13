@@ -1781,7 +1781,9 @@ onAuthStateChanged(auth, async user => {
       loadEmailJSConfig();
       loadCustomFields();
       if (navigator.onLine) syncOfflineQueue();
-      switchTab(currentUserRole === 'vendedor' ? 'cadastro' : 'dashboard');
+      // Adiar ligeiramente para que setupListeners e seus callbacks síncronos não sobrescrevam a navegação
+      const _initialTab = currentUserRole === 'vendedor' ? 'cadastro' : 'dashboard';
+      setTimeout(() => switchTab(_initialTab), 50);
     } else if (currentUserData.status === 'pending') {
       signOut(auth);
       showAuthError('Conta pendente de aprovação pelo administrador.');
