@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Plus Jakarta Sans','sans-serif'],mono:['DM Mono','monospace']},colors:{brand:{50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#0070c0',700:'#005a9c',800:'#1e3a5f',900:'#0f172a'}},boxShadow:{'card':'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)','card-hover':'0 4px 12px rgba(0,0,0,0.08),0 12px 32px rgba(0,0,0,0.08)','glow':'0 0 0 3px rgba(0,112,192,0.15)'}}}}
 </script>
@@ -2399,28 +2400,171 @@ document.getElementById('import-confirm-btn').addEventListener('click',async()=>
   catch(err){document.getElementById('import-done-icon').className='fas fa-times-circle text-2xl';document.getElementById('import-done-icon').style.color='var(--c-red)';document.getElementById('import-progress-title').textContent='Erro!';document.getElementById('import-progress-msg').textContent=err.message;showToast('Erro na importação.','error');}
   finally{btn.disabled=false;btn.querySelector('.button-text').classList.remove('hidden');btn.querySelector('.spinner').classList.add('hidden');}
 });
+let cameraStream = null;
+let tesseractWorker = null;
 
-// ── Camera / Card scan ────────────────────────────────────
-let cameraStream=null;
-document.getElementById('start-camera-btn').addEventListener('click',async()=>{
-  try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const video=document.getElementById('camera-video');video.srcObject=cameraStream;video.classList.remove('hidden');document.getElementById('camera-placeholder').classList.add('hidden');document.getElementById('start-camera-btn').classList.add('hidden');document.getElementById('capture-btn').classList.remove('hidden');}catch(err){showToast('Câmera não disponível. Use o upload de imagem.','warn');}
-});
-document.getElementById('capture-btn').addEventListener('click',()=>{
-  const video=document.getElementById('camera-video'),canvas=document.getElementById('camera-canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);processCardImage(canvas.toDataURL('image/jpeg',0.8));
-});
-document.getElementById('upload-card-btn').addEventListener('click',()=>document.getElementById('card-file-input').click());
-document.getElementById('card-file-input').addEventListener('change',e=>{if(e.target.files[0]){const reader=new FileReader();reader.onload=ev=>processCardImage(ev.target.result);reader.readAsDataURL(e.target.files[0]);}});
-function processCardImage(imageData){
-  document.getElementById('camera-result').innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Processando...';document.getElementById('camera-result').classList.remove('hidden');
-  // Simple text extraction heuristic - look for email and phone patterns
-  // In production this would call a real OCR API
-  setTimeout(()=>{
-    const result=document.getElementById('camera-result');
-    result.innerHTML='<i class="fas fa-check-circle mr-2"></i>Para extração automática de texto, integre uma API de OCR (Google Vision, Azure ou Tesseract.js). Por enquanto, use o formulário manual.';
-    if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());document.getElementById('camera-video').classList.add('hidden');document.getElementById('camera-placeholder').classList.remove('hidden');document.getElementById('start-camera-btn').classList.remove('hidden');document.getElementById('capture-btn').classList.add('hidden');}
-  },1500);
+// Pre-load Tesseract worker in background for faster first use
+async function getTesseractWorker() {
+  if (tesseractWorker) return tesseractWorker;
+  try {
+    tesseractWorker = await Tesseract.createWorker('por+eng', 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round(m.progress * 100);
+          const resultEl = document.getElementById('camera-result');
+          if (resultEl && !resultEl.classList.contains('hidden')) {
+            resultEl.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Lendo texto... ${pct}%`;
+          }
+        }
+      }
+    });
+  } catch(e) {
+    tesseractWorker = null;
+    throw e;
+  }
+  return tesseractWorker;
 }
-document.getElementById('closeCameraModal').addEventListener('click',()=>{if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());document.getElementById('cameraModal').classList.add('hidden');});
+
+// Parse OCR text and extract contact fields heuristically
+function parseCardText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
+  const result = { name: '', email: '', phone: '', company: '' };
+
+  // Email: pattern match
+  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/i);
+  if (emailMatch) result.email = emailMatch[0].toLowerCase();
+
+  // Phone: BR patterns — (xx) xxxxx-xxxx, +55 xx xxxxx xxxx, etc.
+  const phoneMatch = text.replace(/\s+/g,' ').match(/(\+?\d[\d\s\-().]{8,17}\d)/);
+  if (phoneMatch) {
+    const cleaned = phoneMatch[1].replace(/[^\d+\-() ]/g, '').trim();
+    if (cleaned.replace(/\D/g,'').length >= 8) result.phone = cleaned;
+  }
+
+  // Company: lines containing common company suffixes or all-caps words
+  const companyKeywords = /\b(ltda|s\.a\.|s\.a|s\/a|eireli|me\b|epp\b|inc\b|corp\b|group|grupo|solutions|solucoes|tecnologia|tech|sistemas|consultor|capital|holding|partners|associados|servicos|services)\b/i;
+  const companyLine = lines.find(l => companyKeywords.test(l));
+  // Fallback: a line that is mostly uppercase (logos / company names)
+  const upperLine = lines.find(l => l.length > 3 && l === l.toUpperCase() && !/\d/.test(l) && !emailMatch?.includes(l));
+  result.company = companyLine || upperLine || '';
+
+  // Name: first plausible person name line (2+ words, no special chars, not digits, not company)
+  const nameBlacklist = new RegExp(`(${result.email}|${result.company}|www\\.|http|tel|cel|fax|\\d{4,})`, 'i');
+  const nameLine = lines.find(l => {
+    const words = l.split(/\s+/);
+    return words.length >= 2 &&
+      words.length <= 5 &&
+      !/\d{3,}/.test(l) &&
+      !nameBlacklist.test(l) &&
+      /^[a-zA-ZÀ-ÿ\s.'-]+$/.test(l);
+  });
+  result.name = nameLine ? nameLine.replace(/\b\w/g, c => c.toUpperCase()) : '';
+
+  return result;
+}
+
+// Fill form fields with OCR results
+function fillFormFromCard(data) {
+  if (data.name)  { const el = document.getElementById('name');       if (el && !el.value) el.value = data.name; }
+  if (data.email) { const el = document.getElementById('lead_email'); if (el && !el.value) el.value = data.email; el?.dispatchEvent(new Event('input')); }
+  if (data.phone) { const el = document.getElementById('phone');      if (el && !el.value) el.value = maskPhone(data.phone.replace(/\D/g,'')); }
+  if (data.company){ const el = document.getElementById('company');   if (el && !el.value) el.value = data.company; }
+}
+
+async function processCardImage(imageData) {
+  const resultEl = document.getElementById('camera-result');
+  resultEl.style.cssText = 'background:var(--c-brand-dim);color:var(--c-brand);border:1px solid color-mix(in srgb,var(--c-brand) 30%,transparent)';
+  resultEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Inicializando OCR...';
+  resultEl.classList.remove('hidden');
+
+  // Stop camera after capture
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    document.getElementById('camera-video').classList.add('hidden');
+    document.getElementById('camera-placeholder').classList.remove('hidden');
+    document.getElementById('start-camera-btn').classList.remove('hidden');
+    document.getElementById('capture-btn').classList.add('hidden');
+  }
+
+  try {
+    const worker = await getTesseractWorker();
+    resultEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Lendo texto...';
+    const { data: { text } } = await worker.recognize(imageData);
+
+    if (!text || text.trim().length < 5) {
+      resultEl.style.cssText = 'background:var(--c-amber-dim);color:var(--c-amber);border:1px solid color-mix(in srgb,var(--c-amber) 30%,transparent)';
+      resultEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Texto não encontrado. Tente uma imagem mais nítida.';
+      return;
+    }
+
+    const parsed = parseCardText(text);
+    const filled = Object.values(parsed).filter(v => v).length;
+
+    if (filled === 0) {
+      resultEl.style.cssText = 'background:var(--c-amber-dim);color:var(--c-amber);border:1px solid color-mix(in srgb,var(--c-amber) 30%,transparent)';
+      resultEl.innerHTML = `
+        <i class="fas fa-exclamation-triangle mr-2"></i>Não foi possível extrair dados reconhecíveis.<br>
+        <span style="font-size:11px;opacity:.8">Texto bruto: ${text.replace(/\n/g,' ').substring(0,120)}...</span>`;
+      return;
+    }
+
+    fillFormFromCard(parsed);
+    document.getElementById('cameraModal').classList.add('hidden');
+
+    const summary = [
+      parsed.name    ? `<b>Nome:</b> ${parsed.name}`    : '',
+      parsed.email   ? `<b>E-mail:</b> ${parsed.email}` : '',
+      parsed.phone   ? `<b>Tel:</b> ${parsed.phone}`    : '',
+      parsed.company ? `<b>Empresa:</b> ${parsed.company}` : '',
+    ].filter(Boolean).join(' &nbsp;&middot;&nbsp; ');
+
+    showToast(`✨ ${filled} campo(s) preenchido(s) via OCR!`, 'success', 4000);
+
+  } catch(err) {
+    console.error('Tesseract error:', err);
+    resultEl.style.cssText = 'background:var(--c-red-dim);color:var(--c-red);border:1px solid color-mix(in srgb,var(--c-red) 30%,transparent)';
+    resultEl.innerHTML = `<i class="fas fa-times-circle mr-2"></i>Erro no OCR: ${err.message || 'desconhecido'}. Verifique a conexão.`;
+  }
+}
+
+document.getElementById('start-camera-btn').addEventListener('click', async () => {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } });
+    const video = document.getElementById('camera-video');
+    video.srcObject = cameraStream;
+    video.classList.remove('hidden');
+    document.getElementById('camera-placeholder').classList.add('hidden');
+    document.getElementById('start-camera-btn').classList.add('hidden');
+    document.getElementById('capture-btn').classList.remove('hidden');
+    // Pre-warm Tesseract while camera is on
+    getTesseractWorker().catch(() => {});
+  } catch(err) {
+    showToast('Câmera não disponível. Use o upload de imagem.', 'warn');
+  }
+});
+
+document.getElementById('capture-btn').addEventListener('click', () => {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  processCardImage(canvas.toDataURL('image/jpeg', 0.95));
+});
+
+document.getElementById('upload-card-btn').addEventListener('click', () => document.getElementById('card-file-input').click());
+document.getElementById('card-file-input').addEventListener('change', e => {
+  if (e.target.files[0]) {
+    const reader = new FileReader();
+    reader.onload = ev => processCardImage(ev.target.result);
+    reader.readAsDataURL(e.target.files[0]);
+  }
+});
+
+document.getElementById('closeCameraModal').addEventListener('click', () => {
+  if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+  document.getElementById('cameraModal').classList.add('hidden');
+});
 
 // Camera button in form
 const cameraBtn=document.createElement('button');cameraBtn.type='button';cameraBtn.className='btn btn-secondary text-xs py-1.5 px-3';cameraBtn.innerHTML='<i class="fas fa-camera"></i>Cartão de visita';cameraBtn.onclick=()=>document.getElementById('cameraModal').classList.remove('hidden');
