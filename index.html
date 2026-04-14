@@ -2488,7 +2488,8 @@ document.getElementById('quick-add-toggle')?.parentElement?.appendChild(qrBtn);
 
 // ── Dashboard ─────────────────────────────────────────────
 document.addEventListener('change', e => {
-  if (e.target.id === 'dashboard-evento-filter') {
+  if (e && e.target && e.target.id === 'dashboard-evento-filter') {
+    console.log('Filtro dashboard alterado:', e.target.value);
     renderDashboard();
   }
 });
@@ -2497,7 +2498,15 @@ document.addEventListener('click', e => {
   const hubCard = e.target.closest('.hub-event-card');
   if (hubCard) {
     e.preventDefault();
-    if (window.openEventHub) window.openEventHub(hubCard.dataset.eventId, hubCard.dataset.eventName);
+    e.stopPropagation();
+    const eid = hubCard.getAttribute('data-event-id');
+    const enam = hubCard.getAttribute('data-event-name');
+    console.log('Abrindo HUB do evento:', enam);
+    if (window.openEventHub) {
+      window.openEventHub(eid, enam);
+    } else {
+      showToast('Erro: Módulo HUB não carregado.', 'error');
+    }
   }
 });
 
@@ -2513,8 +2522,11 @@ document.getElementById('save-metas-btn')?.addEventListener('click', async () =>
 });
 
 function renderDashboard() {
-  const evFilter = document.getElementById('dashboard-evento-filter')?.value || 'todos';
-  const data = evFilter === 'todos' ? allClients : allClients.filter(c => c.evento === evFilter);
+  try {
+    const filterEl = document.getElementById('dashboard-evento-filter');
+    const evFilter = filterEl ? filterEl.value : 'todos';
+    const leads = allClients || [];
+    const data = evFilter === 'todos' ? leads : leads.filter(c => c.evento === evFilter);
   const total = data.length;
   const today = new Date(), todayStr = today.toISOString().split('T')[0];
   const todayLeads = data.filter(c => { const d = c.createdAt?.toDate?.(); return d && d.toISOString().split('T')[0] === todayStr; }).length;
@@ -2632,6 +2644,9 @@ function renderDashboard() {
     </div>`).join('') || '<p class="text-sm" style="color:var(--c-green)">✓ Todos os leads têm responsável</p>';
 
   renderLeaderboard(data);
+  } catch(err) {
+    console.error('Erro ao renderizar Dashboard:', err);
+  }
 }
 
 function renderLeaderboard(leads) {
@@ -4374,11 +4389,7 @@ function renderHubTab() {
 }
 
 
-// Hub card click delegation
-document.getElementById('hub-event-grid').addEventListener('click', e => {
-  const card = e.target.closest('.hub-event-card');
-  if (card) openEventHub(card.dataset.eventId, card.dataset.eventName);
-});
+
 
 
 // ── Create User (admin) ───────────────────────────────────
