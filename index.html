@@ -12,7 +12,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Plus Jakarta Sans','sans-serif'],mono:['DM Mono','monospace']},colors:{brand:{50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#0070c0',700:'#005a9c',800:'#1e3a5f',900:'#0f172a'}},boxShadow:{'card':'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)','card-hover':'0 4px 12px rgba(0,0,0,0.08),0 12px 32px rgba(0,0,0,0.08)','glow':'0 0 0 3px rgba(0,112,192,0.15)'}}}}
@@ -701,27 +700,12 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
           <p class="text-sm mt-0.5" style="color:var(--c-text-2)">Aqui está o resumo de hoje</p>
         </div>
         <div class="flex gap-2">
-          <select id="dashboard-evento-filter" class="form-input text-sm w-auto" onchange="renderDashboard()"><option value="todos">Todos os eventos</option></select>
+          <select id="dashboard-evento-filter" class="form-input text-sm w-auto"><option value="todos">Todos os eventos</option></select>
         </div>
       </div>
 
       <!-- KPI strip -->
       <div id="dash-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 stagger-children"></div>
-
-      <!-- Ranking e Meta -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-        <div class="lg:col-span-2 card">
-          <h3 class="font-bold text-sm mb-4 flex items-center justify-between">
-            <span><i class="fas fa-trophy mr-2" style="color:var(--c-amber)"></i>Ranking do Evento</span>
-            <span class="text-xs font-normal" style="color:var(--c-text-3)">Baseado em qualidade</span>
-          </h3>
-          <div id="leaderboard-list" class="space-y-3"></div>
-        </div>
-        <div class="card bg-gradient-to-br from-brand-600 to-brand-800 text-white border-0 shadow-lg shadow-brand-500/20">
-          <h3 class="font-bold text-sm mb-4 opacity-90"><i class="fas fa-chart-line mr-2"></i>Meta Global</h3>
-          <div id="event-goal-container" class="space-y-4"></div>
-        </div>
-      </div>
 
       <!-- Main grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -816,35 +800,67 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
             <div class="wizard-dot" id="wdot-2">2</div>
           </div>
           <div class="flex justify-between text-xs mb-5 px-1" style="color:var(--c-text-3)">
-            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Contato & Qualificação</span>
-            <span id="wlabel-2">Próximo Passo</span>
+            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Dados Principais</span>
+            <span id="wlabel-2">Informações Adicionais</span>
           </div>
 
-          <!-- Step 1: Contato + Qualificação (merged) -->
+          <!-- Step 1: Principal -->
           <div class="wizard-step active space-y-4" id="wizard-step-1">
-            <div class="card">
-              <span class="section-label">Evento</span>
-              <select id="evento" class="form-input" required><option value="">Selecione o evento</option></select>
-            </div>
             <div class="card space-y-4">
               <span class="section-label">Dados do Contato</span>
               <div>
-                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Nome completo <span style="color:var(--c-red)">*</span></label>
-                <input type="text" id="name" class="form-input" placeholder="Ex: Maria Silva" required autocomplete="off">
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Nome completo</label>
+                <input type="text" id="name" class="form-input" placeholder="Ex: Maria Silva" autocomplete="off">
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">E-mail <span style="color:var(--c-red)">*</span></label>
-                  <div class="field-wrap"><input type="email" id="lead_email" class="form-input pr-9" placeholder="email@empresa.com" required autocomplete="off"><span id="email-validation-icon" class="field-icon hidden"></span></div>
-                  <div id="duplicate-email-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-email-msg"></span></div>
-                </div>
                 <div>
                   <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Telefone</label>
                   <div class="field-wrap"><input type="tel" id="phone" class="form-input pr-9" placeholder="(00) 00000-0000" autocomplete="off"><span id="phone-validation-icon" class="field-icon hidden"></span></div>
                   <div id="duplicate-phone-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-phone-msg"></span></div>
                 </div>
+                <div>
+                  <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Empresa <span style="color:var(--c-red)">*</span></label>
+                  <input type="text" id="company" class="form-input" placeholder="Nome da empresa" required autocomplete="off">
+                </div>
               </div>
-              <div><label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Empresa</label><input type="text" id="company" class="form-input" placeholder="Nome da empresa" autocomplete="off"></div>
+              <div>
+                <label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Pedir RO para Sales Ops?</label>
+                <div class="choice-group" data-field="pedirRO">
+                  <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                  <button type="button" class="choice-btn" data-value="nao">Não</button>
+                </div>
+                <input type="hidden" id="pedirROVal">
+              </div>
+              <div>
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Observações</label>
+                <textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea>
+              </div>
+            </div>
+            
+            <div class="flex justify-between gap-3">
+              <button type="button" id="save-quick-btn" class="btn btn-success flex-1">
+                <i class="fas fa-save"></i> Salvar
+              </button>
+              <button type="button" id="wizard-next-1" class="btn btn-primary flex-1">
+                Mais informações <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Detalhes -->
+          <div class="wizard-step space-y-4" id="wizard-step-2">
+            <div class="card">
+              <span class="section-label">Evento</span>
+              <select id="evento" class="form-input"><option value="">Selecione o evento</option></select>
+            </div>
+
+            <div class="card space-y-4">
+              <span class="section-label">Dados Adicionais</span>
+              <div>
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">E-mail</label>
+                <div class="field-wrap"><input type="email" id="lead_email" class="form-input pr-9" placeholder="email@empresa.com" autocomplete="off"><span id="email-validation-icon" class="field-icon hidden"></span></div>
+                <div id="duplicate-email-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-email-msg"></span></div>
+              </div>
               <div>
                 <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Origem do contato</label>
                 <div class="choice-group" id="origem-group">
@@ -857,7 +873,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <input type="hidden" id="origemContato">
               </div>
             </div>
-            <!-- Qualificação (merged into step 1) -->
+
             <div class="card space-y-5">
               <span class="section-label">Qualificação</span>
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">É responsável pela conta?</label>
@@ -869,7 +885,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Houve conversa sobre demanda?</label>
                 <div class="choice-group" data-field="conversaDemanda"><button type="button" class="choice-btn" data-value="sim">Sim</button><button type="button" class="choice-btn" data-value="nao">Não</button></div>
                 <input type="hidden" id="conversaDemandaVal"></div>
-              <!-- Portfolio demandas -->
+
               <div id="demandasContainer" class="hidden space-y-3">
                 <label class="text-sm font-semibold block" style="color:var(--c-text-2)">Quais soluções foram discutidas?</label>
                 <div class="flex flex-col sm:flex-row gap-2">
@@ -884,16 +900,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <div id="demanda-solutions-grid" class="grid grid-cols-1 gap-1.5 max-h-72 overflow-y-auto pr-1"></div>
                 <p id="demanda-empty" class="hidden text-xs text-center py-4" style="color:var(--c-text-3)">Nenhuma solução encontrada.</p>
               </div>
-              <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Pedir RO para Sales Ops?</label>
-                <div class="choice-group" data-field="pedirRO"><button type="button" class="choice-btn" data-value="sim">Sim</button><button type="button" class="choice-btn" data-value="nao">Não</button></div>
-                <input type="hidden" id="pedirROVal"></div>
             </div>
-            <div class="flex justify-end"><button type="button" id="wizard-next-1" class="btn btn-primary">Próximo <i class="fas fa-arrow-right"></i></button></div>
-          </div>
 
-          <!-- Step 2: Next step + brinde + notes -->
-          <div class="wizard-step space-y-4" id="wizard-step-2">
-            <!-- Pipeline -->
             <div class="card">
               <span class="section-label">Pipeline</span>
               <div class="pipeline-track" id="pipeline-new">
@@ -904,7 +912,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               </div>
               <input type="hidden" id="pipelineStageVal" value="novo">
             </div>
-            <!-- Next step -->
+
             <div class="card space-y-4">
               <span class="section-label">Próximo Passo</span>
               <div class="choice-group flex-col sm:flex-row" data-field="proximoPasso">
@@ -919,7 +927,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               </div>
               <div id="sdrSelectorContainer" class="hidden"><label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Atribuir ao SDR</label><select id="sdrSelector" class="form-input"></select></div>
             </div>
-            <!-- Brinde -->
+
             <div class="card space-y-4">
               <span class="section-label">🎁 Brinde</span>
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Entregou brinde?</label>
@@ -932,11 +940,12 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <div id="brinde-stock-info" class="hidden text-xs rounded-lg px-3 py-2"></div>
               </div>
             </div>
-            <!-- Notes -->
-            <div class="card"><span class="section-label">Observações</span><textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea></div>
-            <div class="flex justify-between">
-              <button type="button" id="wizard-back-2" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
-              <button type="submit" id="saveButton" class="btn btn-primary py-3 px-8 text-sm">
+
+            <div class="flex justify-between gap-3">
+              <button type="button" id="wizard-back-2" class="btn btn-secondary flex-1">
+                <i class="fas fa-arrow-left"></i> Voltar
+              </button>
+              <button type="submit" id="saveButton" class="btn btn-primary py-3 px-8 text-sm flex-1">
                 <i class="fas fa-save button-icon"></i><span class="button-text">Salvar Lead</span><span class="spinner hidden"></span>
               </button>
             </div>
@@ -1054,7 +1063,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     <div id="tab-analytics-content" style="display:none">
       <div class="flex items-center justify-between mb-5">
         <div><h2 class="text-2xl font-extrabold">Analytics</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Desempenho de captação</p></div>
-        <select id="analytics-evento-filter" class="form-input text-sm w-auto" onchange="renderAnalytics()"><option value="todos">Todos os eventos</option></select>
+        <select id="analytics-evento-filter" class="form-input text-sm w-auto"><option value="todos">Todos os eventos</option></select>
       </div>
       <div id="analytics-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 stagger-children"></div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
@@ -1424,15 +1433,23 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 </div>
 
 <!-- ══ CAMERA MODAL ══ -->
-<div id="cameraModal" class="modal hidden fixed inset-0 z-100 flex items-center justify-center p-4">
-  <div class="modal-content w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl relative">
+<div id="cameraModal" class="hidden modal-overlay">
+  <div class="modal-box max-w-sm">
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold">Escanear Crachá</h3>
-        <button id="closeCameraModal" class="btn btn-ghost btn-icon"><i class="fas fa-times"></i></button>
+        <h3 class="text-lg font-bold">📷 Cartão de Visita</h3>
+        <button id="closeCameraModal" class="btn btn-ghost btn-icon"><i class="fas fa-times text-sm"></i></button>
       </div>
-      <div id="camera-video-container" class="rounded-2xl overflow-hidden bg-black aspect-square mb-4 relative shadow-inner"></div>
-      <div id="camera-result" class="hidden rounded-xl p-3 mb-4 text-xs font-semibold" style="background:var(--c-brand-dim);color:var(--c-brand)"></div>
+      <p class="text-sm mb-4" style="color:var(--c-text-2)">Tire uma foto do cartão de visita para preencher os campos automaticamente</p>
+      <div class="rounded-xl overflow-hidden mb-4" style="background:var(--c-bg);min-height:200px;display:flex;align-items:center;justify-content:center">
+        <video id="camera-video" class="w-full hidden rounded-xl" autoplay playsinline></video>
+        <canvas id="camera-canvas" class="hidden"></canvas>
+        <div id="camera-placeholder" class="text-center p-8">
+          <i class="fas fa-camera text-4xl mb-3 block" style="color:var(--c-text-3)"></i>
+          <p class="text-sm" style="color:var(--c-text-3)">Câmera não iniciada</p>
+        </div>
+      </div>
+      <div id="camera-result" class="hidden rounded-lg p-3 mb-4 text-sm" style="background:var(--c-green-dim);color:var(--c-green)"></div>
       <div class="flex gap-2">
         <button id="start-camera-btn" class="btn btn-primary flex-1 justify-center"><i class="fas fa-camera"></i>Iniciar câmera</button>
         <button id="capture-btn" class="btn btn-success flex-1 justify-center hidden"><i class="fas fa-circle"></i>Capturar</button>
@@ -2033,7 +2050,7 @@ async function loadAndRenderTasks(leadId){
 window.toggleTask=async(leadId,taskId,done)=>{await updateDoc(doc(db,`clientes/${leadId}/tasks/${taskId}`),{done});loadAndRenderTasks(leadId);};
 window.deleteTask=async(leadId,taskId)=>{await deleteDoc(doc(db,`clientes/${leadId}/tasks/${taskId}`));loadAndRenderTasks(leadId);};
 
-window.renderAnalytics = function(){
+function renderAnalytics(){
   const evFilter=document.getElementById('analytics-evento-filter').value;
   const data=evFilter==='todos'?allClients:allClients.filter(c=>c.evento===evFilter);
   const total=data.length,stageCounts={};
@@ -2408,109 +2425,35 @@ document.getElementById('import-confirm-btn').addEventListener('click',async()=>
   finally{btn.disabled=false;btn.querySelector('.button-text').classList.remove('hidden');btn.querySelector('.spinner').classList.add('hidden');}
 });
 
-// ── QR Scanner ────────────────────────────────────────────
-let html5QrCode = null;
-
-window.startQRScanner = async function() {
-  document.getElementById('cameraModal').classList.remove('hidden');
-  const resultEl = document.getElementById('camera-result');
-  resultEl.classList.remove('hidden');
-  resultEl.style.cssText = 'background:var(--c-brand-dim);color:var(--c-brand)';
-  resultEl.innerHTML = '<i class="fas fa-qrcode mr-2"></i>Aponte a câmera para o QR Code do crachá';
-
-  if (!html5QrCode) {
-    html5QrCode = new Html5Qrcode("camera-video-container");
-  }
-
-  const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-  try {
-    await html5QrCode.start(
-      { facingMode: "environment" },
-      qrConfig,
-      (decodedText) => {
-        handleQRSuccess(decodedText);
-      }
-    );
-  } catch (err) {
-    showToast('Erro ao abrir câmera. Verifique as permissões.', 'error');
-    document.getElementById('cameraModal').classList.add('hidden');
-  }
+// ── Camera / Card scan ────────────────────────────────────
+let cameraStream=null;
+document.getElementById('start-camera-btn').addEventListener('click',async()=>{
+  try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const video=document.getElementById('camera-video');video.srcObject=cameraStream;video.classList.remove('hidden');document.getElementById('camera-placeholder').classList.add('hidden');document.getElementById('start-camera-btn').classList.add('hidden');document.getElementById('capture-btn').classList.remove('hidden');}catch(err){showToast('Câmera não disponível. Use o upload de imagem.','warn');}
+});
+document.getElementById('capture-btn').addEventListener('click',()=>{
+  const video=document.getElementById('camera-video'),canvas=document.getElementById('camera-canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);processCardImage(canvas.toDataURL('image/jpeg',0.8));
+});
+document.getElementById('upload-card-btn').addEventListener('click',()=>document.getElementById('card-file-input').click());
+document.getElementById('card-file-input').addEventListener('change',e=>{if(e.target.files[0]){const reader=new FileReader();reader.onload=ev=>processCardImage(ev.target.result);reader.readAsDataURL(e.target.files[0]);}});
+function processCardImage(imageData){
+  document.getElementById('camera-result').innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Processando...';document.getElementById('camera-result').classList.remove('hidden');
+  // Simple text extraction heuristic - look for email and phone patterns
+  // In production this would call a real OCR API
+  setTimeout(()=>{
+    const result=document.getElementById('camera-result');
+    result.innerHTML='<i class="fas fa-check-circle mr-2"></i>Para extração automática de texto, integre uma API de OCR (Google Vision, Azure ou Tesseract.js). Por enquanto, use o formulário manual.';
+    if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());document.getElementById('camera-video').classList.add('hidden');document.getElementById('camera-placeholder').classList.remove('hidden');document.getElementById('start-camera-btn').classList.remove('hidden');document.getElementById('capture-btn').classList.add('hidden');}
+  },1500);
 }
-
-function stopQRScanner() {
-  if (html5QrCode && html5QrCode.isScanning) {
-    html5QrCode.stop().catch(err => console.error("Error stopping scanner", err));
-  }
-  document.getElementById('cameraModal').classList.add('hidden');
-}
-
-function handleQRSuccess(text) {
-  stopQRScanner();
-  showToast('✨ Crachá lido com sucesso!');
-  
-  const data = { name: '', email: '', company: '' };
-
-  // Heuristic parsing
-  if (text.includes('BEGIN:VCARD')) {
-    const fnMatch = text.match(/FN:(.*)\n/);
-    const emailMatch = text.match(/EMAIL.*:(.*)\n/);
-    const orgMatch = text.match(/ORG:(.*)\n/);
-    if (fnMatch) data.name = fnMatch[1].trim();
-    if (emailMatch) data.email = emailMatch[1].trim();
-    if (orgMatch) data.company = orgMatch[1].trim();
-  } else {
-    // Plain text or JSON
-    const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
-    if (emailMatch) {
-      data.email = emailMatch[0];
-      data.name = text.split(emailMatch[0])[0].replace(/[:;,]/g, '').trim();
-    }
-  }
-
-  if (data.name) document.getElementById('name').value = data.name;
-  if (data.email) {
-    document.getElementById('lead_email').value = data.email;
-    document.getElementById('lead_email').dispatchEvent(new Event('input'));
-  }
-  if (data.company) document.getElementById('company').value = data.company;
-}
-
-document.getElementById('closeCameraModal').onclick = stopQRScanner;
+document.getElementById('closeCameraModal').addEventListener('click',()=>{if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());document.getElementById('cameraModal').classList.add('hidden');});
 
 // Camera button in form
-const qrBtn = document.createElement('button');
-qrBtn.type = 'button';
-qrBtn.className = 'btn btn-secondary text-xs py-1.5 px-3';
-qrBtn.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Escanear Crachá';
-qrBtn.onclick = window.startQRScanner;
-document.getElementById('quick-add-toggle')?.parentElement?.appendChild(qrBtn);
+const cameraBtn=document.createElement('button');cameraBtn.type='button';cameraBtn.className='btn btn-secondary text-xs py-1.5 px-3';cameraBtn.innerHTML='<i class="fas fa-camera"></i>Cartão de visita';cameraBtn.onclick=()=>document.getElementById('cameraModal').classList.remove('hidden');
+document.getElementById('quick-add-toggle')?.parentElement?.appendChild(cameraBtn);
 
 
 // ── Dashboard ─────────────────────────────────────────────
-document.addEventListener('change', e => {
-  if (e && e.target && e.target.id === 'dashboard-evento-filter') {
-    console.log('Filtro dashboard alterado:', e.target.value);
-    renderDashboard();
-  }
-});
-
-document.addEventListener('click', e => {
-  const hubCard = e.target.closest('.hub-event-card');
-  if (hubCard) {
-    e.preventDefault();
-    e.stopPropagation();
-    const eid = hubCard.getAttribute('data-event-id');
-    const enam = hubCard.getAttribute('data-event-name');
-    console.log('Abrindo HUB do evento:', enam);
-    if (window.openEventHub) {
-      window.openEventHub(eid, enam);
-    } else {
-      showToast('Erro: Módulo HUB não carregado.', 'error');
-    }
-  }
-});
-
+document.getElementById('dashboard-evento-filter')?.addEventListener('change', renderDashboard);
 document.getElementById('edit-metas-btn')?.addEventListener('click', () => {
   const form = document.getElementById('meta-form-list');
   form.innerHTML = allEvents.map(ev => `<div class="flex items-center justify-between gap-3 mb-2"><label class="text-sm font-semibold flex-1">${ev.name}</label><input type="number" class="form-input text-sm w-24" id="meta-${ev.id}" value="${ev.meta || 0}" min="0"></div>`).join('');
@@ -2522,12 +2465,9 @@ document.getElementById('save-metas-btn')?.addEventListener('click', async () =>
   await batch.commit(); document.getElementById('metaModal').classList.add('hidden'); showToast('Metas salvas!');
 });
 
-window.renderDashboard = function() {
-  try {
-    const filterEl = document.getElementById('dashboard-evento-filter');
-    const evFilter = filterEl ? filterEl.value : 'todos';
-    const leads = allClients || [];
-    const data = evFilter === 'todos' ? leads : leads.filter(c => c.evento === evFilter);
+function renderDashboard() {
+  const evFilter = document.getElementById('dashboard-evento-filter')?.value || 'todos';
+  const data = evFilter === 'todos' ? allClients : allClients.filter(c => c.evento === evFilter);
   const total = data.length;
   const today = new Date(), todayStr = today.toISOString().split('T')[0];
   const todayLeads = data.filter(c => { const d = c.createdAt?.toDate?.(); return d && d.toISOString().split('T')[0] === todayStr; }).length;
@@ -2643,67 +2583,7 @@ window.renderDashboard = function() {
       <span class="font-semibold truncate flex-1">${c.name} <span style="color:var(--c-text-3)">— ${c.evento || ''}</span></span>
       <button onclick="openEditForLead('${c.id}')" class="btn btn-primary text-xs ml-2 flex-shrink-0" style="padding:3px 8px">Atribuir</button>
     </div>`).join('') || '<p class="text-sm" style="color:var(--c-green)">✓ Todos os leads têm responsável</p>';
-
-  renderLeaderboard(data);
-  } catch(err) {
-    console.error('Erro ao renderizar Dashboard:', err);
-  }
 }
-
-window.renderLeaderboard = function(leads) {
-  const container = document.getElementById('leaderboard-list');
-  if(!container) return;
-
-  const scores = {};
-  leads.forEach(l => {
-    const seller = l.responsavel || l.creatorName || 'Desconhecido';
-    if(!scores[seller]) scores[seller] = { points: 0, leads: 0 };
-    
-    let p = 10; 
-    if(l.contatoDecisor) p += 15;
-    if(l.agendarReuniao || l.reuniaoAgendada) p += 50;
-    
-    scores[seller].points += p;
-    scores[seller].leads += 1;
-  });
-
-  const sorted = Object.entries(scores)
-    .sort((a,b) => b[1].points - a[1].points)
-    .slice(0, 5);
-
-  if(sorted.length === 0) {
-    container.innerHTML = '<p class="text-center py-8 text-sm" style="color:var(--c-text-3)">Nenhum lead coletado neste evento</p>';
-    return;
-  }
-
-  const maxPoints = sorted[0][1].points || 1;
-  container.innerHTML = sorted.map(([name, stat], idx) => {
-    const isFirst = idx === 0;
-    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    return `
-      <div class="flex items-center gap-3 p-2 rounded-xl transition-all hover:bg-gray-50 bg-white/40">
-        <div class="relative">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${isFirst ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}" style="${isFirst ? 'border:2px solid var(--c-amber)' : ''}">
-            ${initials}
-          </div>
-          ${isFirst ? '<div class="absolute -top-1 -right-1 bg-amber-400 text-white w-4 h-4 rounded-full flex items-center justify-center text-[8px] border-2 border-white"><i class="fas fa-crown"></i></div>' : `<div class="absolute -bottom-1 -right-1 bg-gray-400 text-white w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-white">${idx+1}</div>`}
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center justify-between mb-0.5">
-            <span class="text-xs font-bold truncate ${isFirst ? 'text-gray-900' : 'text-gray-700'}">${name}</span>
-            <span class="text-xs font-black" style="color:${isFirst ? 'var(--c-amber)' : 'var(--c-brand)'}">${stat.points} <span class="text-[9px] font-normal text-gray-400 ml-0.5">pts</span></span>
-          </div>
-          <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-brand-500 rounded-full transition-all duration-700" style="width:${(stat.points / maxPoints) * 100}%"></div>
-          </div>
-          <div class="text-[9px] text-gray-400 mt-1">${stat.leads} leads coletados</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-
 
 window.openMeetingDetail = id => { const c = allClients.find(x => x.id === id); if (c) { populateViewModal(c); document.getElementById('viewLeadModal').classList.remove('hidden'); } };
 window.openEditForLead = id => { const c = allClients.find(x => x.id === id); if (c) { clientToEditId = id; populateEditModal(c); document.getElementById('editModal').classList.remove('hidden'); } };
@@ -2713,7 +2593,7 @@ document.getElementById('agenda-prev')?.addEventListener('click', () => { agenda
 document.getElementById('agenda-next')?.addEventListener('click', () => { agendaCurrentDate = new Date(agendaCurrentDate.getFullYear(), agendaCurrentDate.getMonth() + 1, 1); renderAgenda(); });
 document.getElementById('agenda-today')?.addEventListener('click', () => { agendaCurrentDate = new Date(); renderAgenda(); });
 
-window.renderAgenda = function() {
+function renderAgenda() {
   const year = agendaCurrentDate.getFullYear(), month = agendaCurrentDate.getMonth();
   const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const dayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -3611,31 +3491,80 @@ document.getElementById('qa-save-btn')?.addEventListener('click', async () => {
 // ── Client Form Submit ────────────────────────────────────
 document.getElementById('clientForm')?.addEventListener('submit', async e => {
   e.preventDefault();
-  const nameVal = document.getElementById('name')?.value.trim();
-  const leadEmail = document.getElementById('lead_email')?.value.trim();
-  if (!nameVal) { showToast('Nome é obrigatório.', 'error'); return; }
-  if (leadEmail && !isValidEmail(leadEmail)) { showToast('E-mail inválido.', 'error'); return; }
+  const isQuickSave = e.target.dataset.quickSave === 'true';
+  delete e.target.dataset.quickSave;
 
-  const btn = document.getElementById('saveButton');
+  const companyVal = document.getElementById('company')?.value.trim();
+  if (!companyVal) {
+    showToast('O campo Empresa é obrigatório.', 'error');
+    goToWizardStep(1);
+    return;
+  }
+
+  // Optional email validation
+  let emailVal = document.getElementById('lead_email')?.value.trim();
+  if (emailVal && !isValidEmail(emailVal)) {
+    showToast('O e-mail informado é inválido.', 'error');
+    if (currentWizardStep === 1) goToWizardStep(2);
+    return;
+  }
+
+  const nameVal = document.getElementById('name')?.value.trim();
+  const phoneVal = document.getElementById('phone')?.value.trim();
+  const pedirRO = document.getElementById('pedirROVal')?.value;
+  const anotacoes = document.getElementById('anotacoes')?.value.trim();
+
+  // Step 2 values
+  let eventoVal = document.getElementById('evento')?.value;
+  let origemVal = document.getElementById('origemContato')?.value;
+  let respConta = document.getElementById('responsavelContaVal')?.value;
+  let decisor = document.getElementById('contatoDecisorVal')?.value;
+  let demanda = document.getElementById('conversaDemandaVal')?.value;
+  let stage = document.getElementById('pipelineStageVal')?.value || 'novo';
+  let proximoPasso = document.getElementById('proximoPassoVal')?.value;
+  let entregouBrinde = document.getElementById('entregouBrindeVal')?.value;
+  // Defaults for optional fields
+  if (!eventoVal) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const activeEvent = allEvents.find(ev => {
+      const s = ev.startDate ? new Date(ev.startDate + 'T00:00:00') : null;
+      const e = ev.endDate ? new Date(ev.endDate + 'T00:00:00') : null;
+      return s && e && s <= today && today <= e;
+    });
+    eventoVal = activeEvent ? activeEvent.name : (allEvents.length ? allEvents[0].name : '');
+  }
+  if (!origemVal) origemVal = 'estande';
+  if (!respConta) respConta = 'nao';
+  if (!decisor) decisor = 'nao';
+  if (!demanda) demanda = 'nao';
+  if (!proximoPasso) proximoPasso = 'nutricaoMKT';
+  if (!entregouBrinde) entregouBrinde = 'nao';
+
+  const btn = isQuickSave ? document.getElementById('save-quick-btn') : document.getElementById('saveButton');
+  if (!btn) return;
+
   btn.disabled = true;
-  btn.querySelector('.button-text')?.classList.add('hidden');
-  btn.querySelector('.spinner')?.classList.remove('hidden');
+  if (!isQuickSave) {
+    btn.querySelector('.button-text')?.classList.add('hidden');
+    btn.querySelector('.spinner')?.classList.remove('hidden');
+  } else {
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  }
 
   const creatorName = `${currentUserData.nome} ${currentUserData.sobrenome}`;
-  const proximoPasso = document.getElementById('proximoPassoVal')?.value || '';
   const brindeData = getBrindeData();
 
   const lead = {
-    evento: document.getElementById('evento')?.value || '',
+    evento: eventoVal,
     name: nameVal,
-    company: document.getElementById('company')?.value.trim() || '',
-    email: leadEmail || '',
-    phone: document.getElementById('phone')?.value.trim() || '',
-    origemContato: document.getElementById('origemContato')?.value || '',
-    responsavelConta: document.getElementById('responsavelContaVal')?.value === 'sim',
-    contatoDecisor: document.getElementById('contatoDecisorVal')?.value === 'sim',
-    conversaDemanda: document.getElementById('conversaDemandaVal')?.value === 'sim',
-    pedirRO: document.getElementById('pedirROVal')?.value === 'sim',
+    company: companyVal,
+    email: emailVal || '',
+    phone: phoneVal,
+    origemContato: origemVal,
+    responsavelConta: respConta === 'sim',
+    contatoDecisor: decisor === 'sim',
+    conversaDemanda: demanda === 'sim',
+    pedirRO: pedirRO === 'sim',
     nutricaoMKT: proximoPasso === 'nutricaoMKT',
     demandas: JSON.parse(document.getElementById('clientForm')?.dataset.demandas || '[]'),
     reuniaoAgendada: proximoPasso === 'euAgendo',
@@ -3643,8 +3572,8 @@ document.getElementById('clientForm')?.addEventListener('submit', async e => {
     reuniaoData: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoDataInput')?.value : null,
     reuniaoHora: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoHoraInput')?.value : null,
     reuniaoAgendadaPor: proximoPasso === 'sdrAgenda' ? document.getElementById('sdrSelector')?.value : null,
-    pipelineStage: document.getElementById('pipelineStageVal')?.value || 'novo',
-    anotacoes: document.getElementById('anotacoes')?.value.trim() || '',
+    pipelineStage: stage,
+    anotacoes: anotacoes,
     createdAt: new Date(), createdBy: currentUserId, creatorName,
     responsavel: creatorName,
     reuniaoRealizada: false, realizadaPor: null,
@@ -3678,8 +3607,12 @@ document.getElementById('clientForm')?.addEventListener('submit', async e => {
     showToast('Erro ao salvar lead.', 'error');
   } finally {
     btn.disabled = false;
-    btn.querySelector('.button-text')?.classList.remove('hidden');
-    btn.querySelector('.spinner')?.classList.add('hidden');
+    if (!isQuickSave) {
+      btn.querySelector('.button-text')?.classList.remove('hidden');
+      btn.querySelector('.spinner')?.classList.add('hidden');
+    } else {
+      btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+    }
   }
 });
 
@@ -3741,12 +3674,29 @@ function goToWizardStep(step) {
 }
 
 document.getElementById('wizard-next-1')?.addEventListener('click', () => {
-  const name = document.getElementById('name')?.value.trim();
+  const company = document.getElementById('company')?.value.trim();
+  if (!company) { showToast('Empresa é obrigatória.', 'error'); return; }
+  
   const email = document.getElementById('lead_email')?.value.trim();
-  if (!name) { showToast('Nome é obrigatório.', 'error'); return; }
   if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
+  
   goToWizardStep(2);
 });
+
+document.getElementById('save-quick-btn')?.addEventListener('click', () => {
+  const form = document.getElementById('clientForm');
+  if (!form) return;
+  
+  const company = document.getElementById('company')?.value.trim();
+  if (!company) { showToast('Empresa é obrigatória.', 'error'); return; }
+
+  const email = document.getElementById('lead_email')?.value.trim();
+  if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
+
+  form.dataset.quickSave = 'true';
+  form.requestSubmit();
+});
+
 document.getElementById('wizard-back-2')?.addEventListener('click', () => goToWizardStep(1));
 
 // Pipeline steps (new lead form)
@@ -4349,7 +4299,7 @@ function renderHubTab() {
     const checkDone = (hub.checklist || []).filter(i => i.done).length;
 
     return `
-    <div class="hub-event-card" onclick="window.openEventHub('${ev.id}','${ev.name}')" 
+    <div class="hub-event-card" data-event-id="${ev.id}" data-event-name="${ev.name}"
          style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:16px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s"
          onmouseover="this.style.boxShadow='0 8px 28px rgba(0,0,0,.1)';this.style.transform='translateY(-2px)'"
          onmouseout="this.style.boxShadow='';this.style.transform=''">
@@ -4390,7 +4340,11 @@ function renderHubTab() {
 }
 
 
-
+// Hub card click delegation
+document.getElementById('hub-event-grid').addEventListener('click', e => {
+  const card = e.target.closest('.hub-event-card');
+  if (card) openEventHub(card.dataset.eventId, card.dataset.eventName);
+});
 
 
 // ── Create User (admin) ───────────────────────────────────
