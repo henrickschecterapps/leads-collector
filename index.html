@@ -701,7 +701,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
           <p class="text-sm mt-0.5" style="color:var(--c-text-2)">Aqui está o resumo de hoje</p>
         </div>
         <div class="flex gap-2">
-          <select id="dashboard-evento-filter" class="form-input text-sm w-auto"><option value="todos">Todos os eventos</option></select>
+          <select id="dashboard-evento-filter" class="form-input text-sm w-auto" onchange="renderDashboard()"><option value="todos">Todos os eventos</option></select>
         </div>
       </div>
 
@@ -1054,7 +1054,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
     <div id="tab-analytics-content" style="display:none">
       <div class="flex items-center justify-between mb-5">
         <div><h2 class="text-2xl font-extrabold">Analytics</h2><p class="text-sm mt-0.5" style="color:var(--c-text-2)">Desempenho de captação</p></div>
-        <select id="analytics-evento-filter" class="form-input text-sm w-auto"><option value="todos">Todos os eventos</option></select>
+        <select id="analytics-evento-filter" class="form-input text-sm w-auto" onchange="renderAnalytics()"><option value="todos">Todos os eventos</option></select>
       </div>
       <div id="analytics-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 stagger-children"></div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
@@ -1428,10 +1428,11 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
   <div class="modal-content w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl relative">
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
-          <p class="text-sm" style="color:var(--c-text-3)">Câmera não iniciada</p>
-        </div>
+        <h3 class="text-lg font-bold">Escanear Crachá</h3>
+        <button id="closeCameraModal" class="btn btn-ghost btn-icon"><i class="fas fa-times"></i></button>
       </div>
-      <div id="camera-result" class="hidden rounded-lg p-3 mb-4 text-sm" style="background:var(--c-green-dim);color:var(--c-green)"></div>
+      <div id="camera-video-container" class="rounded-2xl overflow-hidden bg-black aspect-square mb-4 relative shadow-inner"></div>
+      <div id="camera-result" class="hidden rounded-xl p-3 mb-4 text-xs font-semibold" style="background:var(--c-brand-dim);color:var(--c-brand)"></div>
       <div class="flex gap-2">
         <button id="start-camera-btn" class="btn btn-primary flex-1 justify-center"><i class="fas fa-camera"></i>Iniciar câmera</button>
         <button id="capture-btn" class="btn btn-success flex-1 justify-center hidden"><i class="fas fa-circle"></i>Capturar</button>
@@ -2032,7 +2033,7 @@ async function loadAndRenderTasks(leadId){
 window.toggleTask=async(leadId,taskId,done)=>{await updateDoc(doc(db,`clientes/${leadId}/tasks/${taskId}`),{done});loadAndRenderTasks(leadId);};
 window.deleteTask=async(leadId,taskId)=>{await deleteDoc(doc(db,`clientes/${leadId}/tasks/${taskId}`));loadAndRenderTasks(leadId);};
 
-function renderAnalytics(){
+window.renderAnalytics = function(){
   const evFilter=document.getElementById('analytics-evento-filter').value;
   const data=evFilter==='todos'?allClients:allClients.filter(c=>c.evento===evFilter);
   const total=data.length,stageCounts={};
@@ -2410,7 +2411,7 @@ document.getElementById('import-confirm-btn').addEventListener('click',async()=>
 // ── QR Scanner ────────────────────────────────────────────
 let html5QrCode = null;
 
-async function startQRScanner() {
+window.startQRScanner = async function() {
   document.getElementById('cameraModal').classList.remove('hidden');
   const resultEl = document.getElementById('camera-result');
   resultEl.classList.remove('hidden');
@@ -2482,7 +2483,7 @@ const qrBtn = document.createElement('button');
 qrBtn.type = 'button';
 qrBtn.className = 'btn btn-secondary text-xs py-1.5 px-3';
 qrBtn.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Escanear Crachá';
-qrBtn.onclick = startQRScanner;
+qrBtn.onclick = window.startQRScanner;
 document.getElementById('quick-add-toggle')?.parentElement?.appendChild(qrBtn);
 
 
@@ -2521,7 +2522,7 @@ document.getElementById('save-metas-btn')?.addEventListener('click', async () =>
   await batch.commit(); document.getElementById('metaModal').classList.add('hidden'); showToast('Metas salvas!');
 });
 
-function renderDashboard() {
+window.renderDashboard = function() {
   try {
     const filterEl = document.getElementById('dashboard-evento-filter');
     const evFilter = filterEl ? filterEl.value : 'todos';
@@ -2649,7 +2650,7 @@ function renderDashboard() {
   }
 }
 
-function renderLeaderboard(leads) {
+window.renderLeaderboard = function(leads) {
   const container = document.getElementById('leaderboard-list');
   if(!container) return;
 
@@ -2712,7 +2713,7 @@ document.getElementById('agenda-prev')?.addEventListener('click', () => { agenda
 document.getElementById('agenda-next')?.addEventListener('click', () => { agendaCurrentDate = new Date(agendaCurrentDate.getFullYear(), agendaCurrentDate.getMonth() + 1, 1); renderAgenda(); });
 document.getElementById('agenda-today')?.addEventListener('click', () => { agendaCurrentDate = new Date(); renderAgenda(); });
 
-function renderAgenda() {
+window.renderAgenda = function() {
   const year = agendaCurrentDate.getFullYear(), month = agendaCurrentDate.getMonth();
   const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const dayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -4348,7 +4349,7 @@ function renderHubTab() {
     const checkDone = (hub.checklist || []).filter(i => i.done).length;
 
     return `
-    <div class="hub-event-card" data-event-id="${ev.id}" data-event-name="${ev.name}"
+    <div class="hub-event-card" onclick="window.openEventHub('${ev.id}','${ev.name}')" 
          style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:16px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s"
          onmouseover="this.style.boxShadow='0 8px 28px rgba(0,0,0,.1)';this.style.transform='translateY(-2px)'"
          onmouseout="this.style.boxShadow='';this.style.transform=''">
