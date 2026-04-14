@@ -2487,7 +2487,20 @@ document.getElementById('quick-add-toggle')?.parentElement?.appendChild(qrBtn);
 
 
 // ── Dashboard ─────────────────────────────────────────────
-document.getElementById('dashboard-evento-filter')?.addEventListener('change', renderDashboard);
+document.addEventListener('change', e => {
+  if (e.target.id === 'dashboard-evento-filter') {
+    renderDashboard();
+  }
+});
+
+document.addEventListener('click', e => {
+  const hubCard = e.target.closest('.hub-event-card');
+  if (hubCard) {
+    e.preventDefault();
+    if (window.openEventHub) window.openEventHub(hubCard.dataset.eventId, hubCard.dataset.eventName);
+  }
+});
+
 document.getElementById('edit-metas-btn')?.addEventListener('click', () => {
   const form = document.getElementById('meta-form-list');
   form.innerHTML = allEvents.map(ev => `<div class="flex items-center justify-between gap-3 mb-2"><label class="text-sm font-semibold flex-1">${ev.name}</label><input type="number" class="form-input text-sm w-24" id="meta-${ev.id}" value="${ev.meta || 0}" min="0"></div>`).join('');
